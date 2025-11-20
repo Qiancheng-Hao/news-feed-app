@@ -6,7 +6,7 @@ const uploadRoutes = require('./routes/upload');
 const postRoutes = require('./routes/posts');
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors()); // Enable CORS
@@ -25,6 +25,6 @@ app.get('/', (req, res) => {
 // Start server
 initDB().then(() => {
     app.listen(PORT, () => {
-        console.log(`🚀 服务运行在 http://localhost:${PORT}`);
+        console.log(`Server is running on port ${PORT}`);
     });
 });
