@@ -2,6 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const { initDB } = require('./db');
 const authRoutes = require('./routes/auth');
+const uploadRoutes = require('./routes/upload');
+const postRoutes = require('./routes/posts');
 
 const app = express();
 const PORT = 3000;
@@ -11,7 +13,9 @@ app.use(cors()); // Enable CORS
 app.use(express.json()); // Allow parsing JSON request bodies
 
 // Mount routes
-app.use('/api/auth', authRoutes); // All requests starting with /api/auth are handled by authRoutes
+app.use('/api/auth', authRoutes);
+app.use('/api/upload', uploadRoutes);
+app.use('/api/posts', postRoutes);
 
 // Test root route
 app.get('/', (req, res) => {

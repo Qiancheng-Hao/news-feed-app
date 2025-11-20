@@ -7,9 +7,10 @@ const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USER, proces
     port: process.env.DB_PORT,
     dialect: 'mysql',
     logging: false,
+    timezone: '+08:00',
 });
 
-// 2. User Model
+// 2. Users Model
 const User = sequelize.define(
     'User',
     {
@@ -46,27 +47,60 @@ const User = sequelize.define(
     }
 );
 
+// Posts Model
+const Post = sequelize.define(
+    'Post',
+    {
+        id: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            autoIncrement: true,
+        },
+        content: {
+            type: DataTypes.TEXT,
+            allowNull: false,
+        },
+        images: {
+            type: DataTypes.JSON,
+            allowNull: true,
+        },
+        tags: {
+            type: DataTypes.JSON,
+            allowNull: true,
+        },
+        status: {
+            type: DataTypes.ENUM('published', 'draft'),
+            defaultValue: 'published',
+        },
+    },
+    {
+        timestamps: true,
+        createdAt: 'created_at',
+        updatedAt: 'updated_at',
+        tableName: 'posts',
+    }
+);
+
+// 一个用户可以发多篇帖子
+User.hasMany(Post, { foreignKey: 'user_id' });
+// 一篇帖子属于一个用户
+Post.belongsTo(User, { foreignKey: 'user_id' });
+
 // 3. Initialize DB
 const initDB = async () => {
     try {
         await sequelize.authenticate();
-        console.log('✅ 恭喜！数据库连接成功！');
+        console.log('✅ 数据库连接成功');
 
         // create users table if not exists or update it
         await sequelize.sync({ alter: true });
-        console.log('✅ User 表已成功创建！');
+        console.log('✅ 所有表模型已同步！');
 
         // await sequelize.sync({ force: true });
-        // console.log('✅ User 表已重置');
-
+        // console.log('✅ 数据库已重置');
     } catch (error) {
-        console.error('❌ 连接失败，请检查 .env 文件:', error);
+        console.error('❌ 连接失败:', error);
     }
 };
 
-// // 如果直接运行此文件，则初始化数据库
-// if (require.main === module) {
-//   initDB();
-// }
-
-module.exports = { sequelize, User, initDB };
+module.exports = { sequelize, User, Post, initDB };

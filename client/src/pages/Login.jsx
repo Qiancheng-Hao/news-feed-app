@@ -2,10 +2,13 @@ import { useState } from 'react';
 import { Form, Input, Button, Toast, Card } from 'antd-mobile';
 import { useNavigate } from 'react-router-dom';
 import request from '../utils/request';
+import useUserStore from '../stores/useUserStore';
 
 export default function Login() {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
+
+    const setToken = useUserStore((state) => state.setToken);
 
     // on form submit
     const onFinish = async (values) => {
@@ -19,7 +22,7 @@ export default function Login() {
 
             // login successful: store Token and navigate to home page
             Toast.show({ content: '登录成功', icon: 'success' });
-            localStorage.setItem('token', res.token);
+            setToken(res.token);
             navigate('/');
         } catch {
             setLoading(false);

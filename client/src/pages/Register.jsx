@@ -80,7 +80,7 @@ export default function Register() {
 
     return (
         <div style={{ padding: '20px', marginTop: '20px' }}>
-            <h1 style={{ textAlign: 'center', marginBottom: '30px' }}>邮箱注册</h1>
+            <h1 style={{ textAlign: 'center', marginBottom: '30px' }}>用户注册</h1>
 
             <Card>
                 <Form
