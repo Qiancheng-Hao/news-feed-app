@@ -5,6 +5,7 @@ import Home from './pages/Home';
 import BasicLayout from './layouts/BasicLayout';
 import Publish from './pages/Publish';
 import Profile from './pages/Profile';
+import AuthRoute from './components/AuthRoute';
 
 function App() {
     return (
@@ -21,11 +22,25 @@ function App() {
                 {/* index 代表默认子路由 (即访问 / 时显示 Home) */}
                 <Route index element={<Home />} />
 
-                {/* 访问 /publish 显示 Publish */}
-                <Route path="publish" element={<Publish />} />
+                {/* Publish require login*/}
+                <Route
+                    path="publish"
+                    element={
+                        <AuthRoute>
+                            <Publish />
+                        </AuthRoute>
+                    }
+                />
 
-                {/* 访问 /profile 显示 Profile */}
-                <Route path="profile" element={<Profile />} />
+                {/* Profile require login*/}
+                <Route
+                    path="profile"
+                    element={
+                        <AuthRoute>
+                            <Profile />
+                        </AuthRoute>
+                    }
+                />
             </Route>
 
             {/* 404 page (optional) */}
