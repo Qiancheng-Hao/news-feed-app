@@ -20,9 +20,15 @@ const transporter = nodemailer.createTransport({
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
     },
-    connectionTimeout: 10000, 
-    greetingTimeout: 10000,
-    socketTimeout: 10000,
+    family: 4,
+    connectionTimeout: 30000,
+    greetingTimeout: 30000,
+    socketTimeout: 30000,
+    tls: {
+        ciphers: 'SSLv3',
+        // 如果遇到证书问题，可以临时开启这个（生产环境慎用，但测试可用）
+        // rejectUnauthorized: false
+    },
 });
 
 // 接口：发送验证码 (POST /api/auth/send-code) ===
