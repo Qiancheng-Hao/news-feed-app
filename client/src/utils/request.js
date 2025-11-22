@@ -4,7 +4,7 @@ import { Toast } from 'antd-mobile';
 // create axios instance
 const request = axios.create({
     baseURL: '/api', // all requests will automatically have the /api prefix
-    timeout: 30000, 
+    timeout: 60000,
 });
 
 // request interceptor: automatically add Token before each request

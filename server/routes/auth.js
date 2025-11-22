@@ -15,8 +15,8 @@ const codeStore = new Map();
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-        user: process.env.EMAIL_USER, // configured in .env
-        pass: process.env.EMAIL_PASS, // configured in .env
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
     },
 });
 
@@ -26,17 +26,6 @@ router.post('/send-code', async (req, res) => {
 
     if (!email) {
         return res.status(400).json({ message: '请输入邮箱地址' });
-    }
-
-    try {
-        const existingUser = await User.findOne({ where: { email } });
-        if (existingUser) {
-            // if user found, 409 Conflict
-            return res.status(409).json({ message: '该邮箱已注册，请直接登录' });
-        }
-    } catch (dbError) {
-        console.error('数据库查询失败:', dbError);
-        return res.status(500).json({ message: '服务器繁忙，请稍后再试' });
     }
 
     // generate 6-digit code
@@ -76,7 +65,7 @@ router.post('/register', async (req, res) => {
         // 2. check if email already exists
         const existingUser = await User.findOne({ where: { email } });
         if (existingUser) {
-            return res.status(400).json({ message: '该邮箱已被注册' });
+            return res.status(409).json({ message: '该邮箱已被注册' });
         }
 
         // 3. handle username
@@ -118,33 +107,51 @@ router.post('/register', async (req, res) => {
 // 登录接口: POST /api/auth/login
 router.post('/login', async (req, res) => {
     try {
-        const { username, password } = req.body;
+        const { type, username, password, email, code } = req.body;
 
-        // 1. find user by email or username
-        const { Op } = require('sequelize');
-        const user = await User.findOne({
-            where: {
-                [Op.or]: [{ username: username }, { email: username }],
-            },
-        });
-        if (!user) {
-            return res.status(401).json({ message: '用户不存在' });
+        let user = null;
+
+        if (type === 'email_code') {
+            const record = codeStore.get(email);
+            if (!record || record.code !== code) {
+                return res.status(400).json({ message: '验证码错误' });
+            }
+            if (Date.now() > record.expire) {
+                codeStore.delete(email);
+                return res.status(400).json({ message: '验证码已过期' });
+            }
+
+            user = await User.findOne({ where: { email } });
+            if (!user) {
+                return res.status(401).json({ message: '用户不存在' });
+            }
+            codeStore.delete(email);
+        } else if (type === 'password') {
+            // find user by email or username
+            const { Op } = require('sequelize');
+            user = await User.findOne({
+                where: {
+                    [Op.or]: [{ username: username }, { email: username }],
+                },
+            });
+            if (!user) {
+                return res.status(401).json({ message: '用户不存在' });
+            }
+            // check password match
+            const isMatch = await bcrypt.compare(password, user.password);
+            if (!isMatch) {
+                return res.status(401).json({ message: '密码错误' });
+            }
         }
 
-        // 2. check password match
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) {
-            return res.status(401).json({ message: '密码错误' });
-        }
-
-        // 3. generate Token (valid for 3 hours)
+        // generate Token (valid for 3 hours)
         const token = jwt.sign(
             { userId: user.id, username: user.username, avatar: user.avatar }, // Data to include in the Token
             process.env.JWT_SECRET || 'default_secret', // Secret key
             { expiresIn: '3h' }
         );
 
-        // 4. return Token
+        // return Token
         res.json({
             message: '登录成功',
             token: token,
@@ -171,15 +178,21 @@ setInterval(() => {
     }
 }, 60 * 1000);
 
-// 测试接口: GET /api/auth/me (获取当前用户信息)
-// 注意：我们在路由中间加了 authenticateToken，这就是“检票”
+// 获取当前用户信息: GET /api/auth/me
 router.get('/me', authenticateToken, async (req, res) => {
-    // 如果能走到这里，说明 Token 验证通过了
-    // req.user 就是中间件里解析出来的
     res.json({
         message: '恭喜，你通过了身份验证！',
         yourData: req.user,
     });
+});
+
+// 检查邮箱是否已注册: POST /api/auth/check-email
+router.post('/check-email', async (req, res) => {
+    const { email } = req.body;
+    const user = await User.findOne({ where: { email } });
+
+    // return { exists: true/false }
+    res.json({ exists: !!user });
 });
 
 module.exports = router;

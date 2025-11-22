@@ -1,24 +1,24 @@
 import { useState } from 'react';
-import { Form, Input, Button, Toast, Card } from 'antd-mobile';
+import { Toast, Card, Tabs } from 'antd-mobile';
 import { useNavigate } from 'react-router-dom';
 import request from '../utils/request';
 import useUserStore from '../stores/useUserStore';
+import PasswordLoginForm from '../components/PasswordLoginForm';
+import EmailCodeLoginForm from '../components/EmailCodeLoginForm';
 
 export default function Login() {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
-
     const setToken = useUserStore((state) => state.setToken);
+    const [loginType, setLoginType] = useState('password');
 
     // on form submit
     const onFinish = async (values) => {
         try {
             setLoading(true);
+
             // call backend login API
-            const res = await request.post('/auth/login', {
-                username: values.username,
-                password: values.password,
-            });
+            const res = await request.post('/auth/login', values);
 
             // login successful: store Token and navigate to home page
             Toast.show({ content: '登录成功', icon: 'success' });
@@ -34,32 +34,24 @@ export default function Login() {
             <h1 style={{ textAlign: 'center', marginBottom: '40px' }}>欢迎回来</h1>
 
             <Card>
-                <Form
-                    layout="horizontal"
-                    onFinish={onFinish}
-                    footer={
-                        <Button block type="submit" color="primary" loading={loading} size="large">
-                            登录
-                        </Button>
-                    }
+                <Tabs
+                    activeKey={loginType}
+                    onChange={(key) => setLoginType(key)}
+                    style={{ '--content-padding': '0' }}
                 >
-                    <Form.Item
-                        name="username"
-                        label="用户名"
-                        rules={[{ required: true, message: '请输入用户名/邮箱' }]}
-                    >
-                        <Input placeholder="请输入用户名/邮箱" />
-                    </Form.Item>
-                    <Form.Item
-                        name="password"
-                        label="密码"
-                        rules={[{ required: true, message: '请输入密码' }]}
-                    >
-                        <Input placeholder="请输入密码" type="password" />
-                    </Form.Item>
-                </Form>
+                    <Tabs.Tab title="账号密码登录" key="password" />
+                    <Tabs.Tab title="邮箱验证码登录" key="email" />
+                </Tabs>
 
-                {/* 去注册的链接 */}
+                {/* 2 different login types */}
+                <div className="form-content" style={{ marginTop: '24px' }}>
+                    {loginType === 'password' ? (
+                        <PasswordLoginForm loading={loading} onFinish={onFinish} />
+                    ) : (
+                        <EmailCodeLoginForm loading={loading} onFinish={onFinish} />
+                    )}
+                </div>
+
                 <div style={{ textAlign: 'center', marginTop: '20px' }}>
                     <span style={{ color: '#666' }}>还没有账号？</span>
                     <span

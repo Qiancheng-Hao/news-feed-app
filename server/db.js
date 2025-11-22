@@ -93,11 +93,17 @@ const initDB = async () => {
         console.log('✅ 数据库连接成功');
 
         // create users table if not exists or update it
-        await sequelize.sync({ alter: true });
+        // await sequelize.sync({ alter: true });
+        await sequelize.sync();
         console.log('✅ 所有表模型已同步！');
 
+        // await sequelize.query('SET FOREIGN_KEY_CHECKS = 0;');
+        // await User.sync({ force: true });
+        // await sequelize.query('SET FOREIGN_KEY_CHECKS = 1;');
+        // await Post.sync();
+
         // await sequelize.sync({ force: true });
-        // console.log('✅ 数据库已重置');
+        // console.log('✅ User数据库已重置');
     } catch (error) {
         console.error('❌ 连接失败:', error);
     }
