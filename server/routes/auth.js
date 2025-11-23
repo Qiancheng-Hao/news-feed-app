@@ -3,7 +3,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { User } = require('../db');
 const authenticateToken = require('../middleware/authMiddleware');
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 require('dotenv').config();
 
 const router = express.Router();
@@ -11,25 +11,7 @@ const router = express.Router();
 // 验证码存储
 const codeStore = new Map();
 
-// 配置 Gmail 邮件发送器
-const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 587,
-    secure: false,
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-    },
-    family: 4,
-    connectionTimeout: 30000,
-    greetingTimeout: 30000,
-    socketTimeout: 30000,
-    tls: {
-        ciphers: 'SSLv3',
-        // 如果遇到证书问题，可以临时开启这个（生产环境慎用，但测试可用）
-        // rejectUnauthorized: false
-    },
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 // 接口：发送验证码 (POST /api/auth/send-code) ===
 router.post('/send-code', async (req, res) => {
@@ -45,15 +27,19 @@ router.post('/send-code', async (req, res) => {
     // store in memory, expire in 5 minutes
     codeStore.set(email, { code, expire: Date.now() + 5 * 60 * 1000 });
 
-    console.log(`🔍 验证码发送至 ${email}`);
-
     try {
-        await transporter.sendMail({
-            from: process.env.EMAIL_USER,
+        const data = await resend.emails.send({
+            from: 'noreply@newsfeedapp.me',
             to: email,
-            subject: '【News Feed App】注册验证码',
-            text: `您的验证码是：${code}, 有效期5分钟。如非本人操作请忽略。`,
+            subject: '【News App】注册验证码',
+            html: `<p>您的验证码是：<strong>${code}</strong></p><p>有效期5分钟。如非本人操作请忽略。</p>`,
         });
+        if (data.error) {
+            console.error('Resend 报错:', data.error);
+            return res.status(500).json({ message: '发送失败' });
+        }
+
+        console.log(`✅ 邮件发送成功至 ${email}`);
 
         res.json({ message: '验证码已发送，请查收邮箱' });
     } catch (error) {
