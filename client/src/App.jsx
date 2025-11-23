@@ -1,51 +1,51 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import Home from './pages/Home';
+import { Routes, Route } from 'react-router-dom';
 import BasicLayout from './layouts/BasicLayout';
-import Publish from './pages/Publish';
-import Profile from './pages/Profile';
 import AuthRoute from './components/AuthRoute';
+import { Suspense, lazy } from 'react';
+import { DotLoading } from 'antd-mobile';
+
+const Publish = lazy(() => import('./pages/Publish'));
+const Profile = lazy(() => import('./pages/Profile'));
+const Login = lazy(() => import('./pages/Login'));
+const Register = lazy(() => import('./pages/Register'));
+const Home = lazy(() => import('./pages/Home'));
+
+const PageLoading = () => (
+    <div style={{ padding: 20, textAlign: 'center' }}>
+        <DotLoading /> 页面加载中...
+    </div>
+);
 
 function App() {
     return (
-        <Routes>
-            {/* visit /login to show Login component */}
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
+        <Suspense fallback={<PageLoading />}>
+            <Routes>
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
 
-            {/* visit / (home) temporarily redirect to login page (for debugging) */}
-            {/* <Route path="/" element={<Navigate to="/login" replace />} /> */}
+                <Route path="/" element={<BasicLayout />}>
+                    <Route index element={<Home />} />
 
-            {/* 所有在 BasicLayout 里的页面，都会带底部导航栏 */}
-            <Route path="/" element={<BasicLayout />}>
-                {/* index 代表默认子路由 (即访问 / 时显示 Home) */}
-                <Route index element={<Home />} />
+                    <Route
+                        path="publish"
+                        element={
+                            <AuthRoute>
+                                <Publish />
+                            </AuthRoute>
+                        }
+                    />
 
-                {/* Publish require login*/}
-                <Route
-                    path="publish"
-                    element={
-                        <AuthRoute>
-                            <Publish />
-                        </AuthRoute>
-                    }
-                />
-
-                {/* Profile require login*/}
-                <Route
-                    path="profile"
-                    element={
-                        <AuthRoute>
-                            <Profile />
-                        </AuthRoute>
-                    }
-                />
-            </Route>
-
-            {/* 404 page (optional) */}
-            <Route path="*" element={<div>404 Not Found</div>} />
-        </Routes>
+                    <Route
+                        path="profile"
+                        element={
+                            <AuthRoute>
+                                <Profile />
+                            </AuthRoute>
+                        }
+                    />
+                </Route>
+            </Routes>
+        </Suspense>
     );
 }
 

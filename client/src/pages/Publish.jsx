@@ -110,8 +110,8 @@ export default function Publish() {
 
     // Handle image size update
     const handleImgSize = (file) => {
-        // Limit max size to 10MB
-        const maxMb = 10;
+        // Limit max size to 20MB
+        const maxMb = 20;
         const maxSize = maxMb * 1024 * 1024;
 
         if (file.size > maxSize) {

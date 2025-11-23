@@ -92,8 +92,8 @@ router.post('/register', async (req, res) => {
         });
 
         codeStore.delete(email);
-        res.status(201).json({ message: '注册成功' });
         console.log(`✅ 新用户注册: ${finalUsername} (${email})`);
+        res.status(201).json({ message: '注册成功' });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: '注册失败' });
@@ -158,6 +158,7 @@ router.post('/login', async (req, res) => {
                 avatar: user.avatar,
             },
         });
+        console.log(`✅ 用户登录: ${user.username} (${user.email})`);
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: '服务器错误' });

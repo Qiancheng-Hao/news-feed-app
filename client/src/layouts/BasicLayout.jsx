@@ -36,9 +36,16 @@ export default function BasicLayout() {
     ];
 
     return (
-        <div className="basic-layout">
+        <div
+            style={{
+                height: '100dvh',
+                display: 'flex',
+                flexDirection: 'column',
+                overflow: 'hidden',
+            }}
+        >
             {/* 内容区域 渲染子路由组件 */}
-            <div style={{ flex: 1, overflow: 'auto', background: '#f5f5f5' }}>
+            <div style={{ flex: 1, overflow: 'hidden', background: '#f5f5f5' }}>
                 <Outlet />
             </div>
 

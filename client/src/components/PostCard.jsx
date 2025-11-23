@@ -1,15 +1,27 @@
-import React from 'react';
 import { Card, Avatar, Image, ImageViewer } from 'antd-mobile';
 import { useState } from 'react';
 
-export default function PostCard({ post }) {
+// function to get thumbnail URL
+const getThumbnailUrl = (url) => {
+    if (!url) return '';
+    if (!url.includes('.volces.com')) return url;
+
+    return `${url}?x-tos-process=image/resize,w_300`;
+};
+
+export default function PostCard({ post, priority = false }) {
     const [visible, setVisible] = useState(false);
     const [imageIndex, setImageIndex] = useState(0);
 
     // format date
     const formatDate = (dateStr) => {
         const date = new Date(dateStr);
-        return `${date.getMonth() + 1}月${date.getDate()}日 ${date.getHours()}:${date.getMinutes()}`;
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+
+        return `${month}月${day}日 ${hours}:${minutes}`;
     };
 
     const imageCount = post.images?.length || 0;
@@ -24,7 +36,6 @@ export default function PostCard({ post }) {
             return (
                 <div
                     style={{
-                        // Container handle border radius and click event
                         borderRadius: '8px',
                         overflow: 'hidden',
                         display: 'inline-block',
@@ -36,14 +47,15 @@ export default function PostCard({ post }) {
                     }}
                 >
                     <img
-                        src={singleImg}
+                        src={getThumbnailUrl(singleImg)}
+                        loading={priority ? 'eager' : 'lazy'}
                         alt="post"
                         style={{
                             display: 'block',
-                            maxWidth: '70%',
+                            maxWidth: '80%',
                             minWidth: '30%',
 
-                            maxHeight: '250px',
+                            maxHeight: '350px',
 
                             width: 'auto',
                             height: 'auto',
@@ -75,7 +87,8 @@ export default function PostCard({ post }) {
                         style={{ aspectRatio: '1 / 1', overflow: 'hidden', borderRadius: '4px' }}
                     >
                         <Image
-                            src={img}
+                            src={getThumbnailUrl(img)}
+                            lazy={!priority}
                             fit="cover"
                             width="100%"
                             height="100%"
@@ -91,10 +104,26 @@ export default function PostCard({ post }) {
     };
 
     return (
-        <Card style={{ marginBottom: '12px', borderRadius: 0, border: 'none' }}>
+        <Card
+            style={{
+                marginBottom: '12px',
+                borderRadius: 0,
+                border: 'none',
+                padding: '16px',
+            }}
+        >
             {/* user info */}
-            <div style={{ display: 'flex', marginBottom: '12px' }}>
-                <Avatar src={post.User?.avatar} style={{ '--size': '40px', marginRight: '12px' }} />
+            <div style={{ display: 'flex', marginBottom: '12px', minHeight: '40px' }}>
+                <div style={{ flexShrink: 0, width: '40px', height: '40px', marginRight: '12px' }}>
+                    <Avatar
+                        src={post.User?.avatar}
+                        style={{
+                            '--size': '40px',
+                            width: '40px',
+                            height: '40px',
+                        }}
+                    />
+                </div>
                 <div>
                     <div style={{ fontWeight: 'bold', fontSize: '16px' }}>
                         {post.User?.username || '未知用户'}
@@ -106,7 +135,15 @@ export default function PostCard({ post }) {
             </div>
 
             {/* content */}
-            <div style={{ fontSize: '15px', marginBottom: '12px', whiteSpace: 'pre-wrap' }}>
+            <div
+                style={{
+                    fontSize: '15px',
+                    marginBottom: '12px',
+                    whiteSpace: 'pre-wrap',
+                    minHeight: '20px',
+                    lineHeight: '1.5',
+                }}
+            >
                 {post.content}
             </div>
 

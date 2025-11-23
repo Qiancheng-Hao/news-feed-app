@@ -1,7 +1,7 @@
 const { Sequelize, DataTypes } = require('sequelize');
 require('dotenv').config();
 
-// 1. Initialize connection
+// Initialize connection
 const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USER, process.env.DB_PASS, {
     host: process.env.DB_HOST,
     port: process.env.DB_PORT,
@@ -10,14 +10,14 @@ const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USER, proces
     timezone: '+08:00',
 });
 
-// 2. Users Model
+// Users Model
 const User = sequelize.define(
     'User',
     {
         id: {
-            type: DataTypes.INTEGER,
+            type: DataTypes.UUID,
+            defaultValue: DataTypes.UUIDV4,
             primaryKey: true,
-            autoIncrement: true,
         },
         username: {
             type: DataTypes.STRING,
@@ -52,9 +52,13 @@ const Post = sequelize.define(
     'Post',
     {
         id: {
-            type: DataTypes.INTEGER,
+            type: DataTypes.UUID,
+            defaultValue: DataTypes.UUIDV4,
             primaryKey: true,
-            autoIncrement: true,
+        },
+        user_id: {
+            type: DataTypes.UUID,
+            allowNull: false,
         },
         content: {
             type: DataTypes.TEXT,
@@ -81,12 +85,11 @@ const Post = sequelize.define(
     }
 );
 
-// 一个用户可以发多篇帖子
+// 一个用户可以发多篇帖子，一篇帖子属于一个用户
 User.hasMany(Post, { foreignKey: 'user_id' });
-// 一篇帖子属于一个用户
 Post.belongsTo(User, { foreignKey: 'user_id' });
 
-// 3. Initialize DB
+// Initialize DB
 const initDB = async () => {
     try {
         await sequelize.authenticate();

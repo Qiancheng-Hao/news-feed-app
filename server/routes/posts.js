@@ -24,6 +24,8 @@ router.post('/', authenticateToken, async (req, res) => {
             status: 'published',
         });
 
+        console.log('✅ ', req.user.username, ' 发布新帖子');
+
         res.status(201).json({
             message: '发布成功',
             post: newPost,
@@ -37,6 +39,12 @@ router.post('/', authenticateToken, async (req, res) => {
 // get the posts (GET /api/posts)
 router.get('/', async (req, res) => {
     try {
+        // page & pageSize
+        const page = parseInt(req.query.page) || 1;
+        const pageSize = parseInt(req.query.pageSize) || 10;
+
+        const offset = (page - 1) * pageSize;
+
         const posts = await Post.findAll({
             include: [
                 {
@@ -45,7 +53,10 @@ router.get('/', async (req, res) => {
                 },
             ],
             order: [['created_at', 'DESC']], // descending order by created_at
+            limit: pageSize,
+            offset: offset,
         });
+
         res.json(posts);
     } catch (error) {
         console.error(error);
