@@ -1,5 +1,6 @@
 import { Card, Avatar, Image, ImageViewer } from 'antd-mobile';
 import { useState } from 'react';
+import './TipTap.css';
 
 // function to get thumbnail URL
 const getThumbnailUrl = (url) => {
@@ -136,6 +137,7 @@ export default function PostCard({ post, priority = false }) {
 
             {/* content */}
             <div
+                className="tiptap"
                 style={{
                     fontSize: '15px',
                     marginBottom: '12px',
@@ -143,20 +145,20 @@ export default function PostCard({ post, priority = false }) {
                     minHeight: '20px',
                     lineHeight: '1.5',
                 }}
-            >
-                {post.content}
-            </div>
+                dangerouslySetInnerHTML={{ __html: post.content }}
+            />
 
             {/* call renderImages function */}
             {renderImages()}
-
-            <ImageViewer.Multi
-                images={post.images || []}
-                visible={visible}
-                defaultIndex={imageIndex}
-                onClose={() => setVisible(false)}
-                key={imageIndex}
-            />
+            {visible && (
+                <ImageViewer.Multi
+                    images={post.images || []}
+                    visible={visible}
+                    defaultIndex={imageIndex}
+                    onClose={() => setVisible(false)}
+                    key={imageIndex}
+                />
+            )}
         </Card>
     );
 }

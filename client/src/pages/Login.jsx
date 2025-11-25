@@ -3,8 +3,8 @@ import { Toast, Card, Tabs } from 'antd-mobile';
 import { useNavigate } from 'react-router-dom';
 import request from '../utils/request';
 import useUserStore from '../stores/useUserStore';
-import PasswordLoginForm from '../components/PasswordLoginForm';
-import EmailCodeLoginForm from '../components/EmailCodeLoginForm';
+import PasswordLoginForm from '../components/Login/PasswordLoginForm';
+import EmailCodeLoginForm from '../components/Login/EmailCodeLoginForm';
 
 export default function Login() {
     const navigate = useNavigate();

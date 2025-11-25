@@ -3,7 +3,7 @@ import { Form, Input, Button, Toast, Card } from 'antd-mobile';
 import { useNavigate } from 'react-router-dom';
 import request from '../utils/request';
 import useVerifyCode from '../hooks/useVerifyCode';
-import CaptchaModal from '../components/CaptchaModal';
+import CaptchaModal from '../components/Captcha/CaptchaModal';
 import useEmailValidator from '../hooks/useEmailValidator';
 
 export default function Register() {

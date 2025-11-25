@@ -1,7 +1,7 @@
 import { Form, Input, Button } from 'antd-mobile';
-import useVerifyCode from '../hooks/useVerifyCode';
-import CaptchaModal from '../components/CaptchaModal';
-import useEmailValidator from '../hooks/useEmailValidator';
+import useVerifyCode from '../../hooks/useVerifyCode';
+import CaptchaModal from '../Captcha/CaptchaModal';
+import useEmailValidator from '../../hooks/useEmailValidator';
 
 export default function EmailCodeLoginForm({ onFinish, loading }) {
     const [form] = Form.useForm();

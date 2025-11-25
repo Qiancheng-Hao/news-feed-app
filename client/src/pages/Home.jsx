@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { NavBar, PullToRefresh, ErrorBlock, DotLoading, InfiniteScroll } from 'antd-mobile';
 import { Skeleton } from 'antd-mobile';
-import PostCard from '../components/PostCard';
+import PostCard from '../components/Post/PostCard';
 import usePostStore from '../stores/usePostStore';
 import '../App.css';
 
