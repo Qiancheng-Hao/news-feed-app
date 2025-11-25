@@ -192,3 +192,13 @@ pre code {
 .hljs-strong {
     font-weight: 700;
 }
+
+/* styles for empty paragraphs in PostCard rendering */
+.rich-text-content p {
+    margin-bottom: 0.5em;
+    min-height: 1.5em;
+}
+
+.rich-text-content p:last-child {
+    margin-bottom: 0;
+}

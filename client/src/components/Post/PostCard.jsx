@@ -137,7 +137,7 @@ export default function PostCard({ post, priority = false }) {
 
             {/* content */}
             <div
-                className="tiptap"
+                className="tiptap rich-text-content"
                 style={{
                     fontSize: '15px',
                     marginBottom: '12px',
