@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { NavBar, Button, Toast } from 'antd-mobile';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import request from '../utils/request';
+import useUserStore from '../stores/useUserStore';
 import usePostStore from '../stores/usePostStore';
 import ImageUpload from '../components/Post/ImageUpload';
 import Tiptap from '../components/Post/Tiptap';
@@ -9,12 +10,30 @@ import '../App.css';
 
 export default function Publish() {
     const navigate = useNavigate();
+    const location = useLocation();
 
-    const [content, setContent] = useState('');
-    const [fileList, setFileList] = useState([]); // { id, url, serverUrl, status, percent }
+    // Check if we are in edit mode by looking for a post in the location state
+    const isEditMode = location.state?.post;
+    const postToEdit = location.state?.post || {};
+
+    const [content, setContent] = useState(postToEdit.content || '');
+    const [fileList, setFileList] = useState([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const fetchPosts = usePostStore((state) => state.fetchPosts);
+
+    // Populate fileList if in edit mode
+    useEffect(() => {
+        if (isEditMode && postToEdit.images) {
+            const imageFiles = postToEdit.images.map((url, index) => ({
+                id: `${Date.now()}-${index}`,
+                url: `${!url.includes('.volces.com') ? url : `${url}?x-tos-process=image/resize,w_300`}`,
+                serverUrl: url,
+                status: 'success',
+            }));
+            setFileList(imageFiles);
+        }
+    }, [isEditMode, postToEdit.images]);
 
     const handleSubmit = async () => {
         if (!content.trim() && fileList.length === 0) return Toast.show('写点什么吧...');
@@ -24,12 +43,21 @@ export default function Publish() {
         setIsSubmitting(true);
         try {
             const images = fileList.map((item) => item.serverUrl).filter(Boolean);
-            await request.post('/posts', { content, images });
-            Toast.show({ content: '发布成功！', icon: 'success' });
-            await fetchPosts(true);
-            navigate('/');
+
+            if (isEditMode) {
+                // Update existing post
+                await request.put(`/posts/${postToEdit.id}`, { content, images });
+                Toast.show({ content: '更新成功！', icon: 'success' });
+            } else {
+                // Create new post
+                await request.post('/posts', { content, images });
+                Toast.show({ content: '发布成功！', icon: 'success' });
+            }
+
+            await fetchPosts(true); // Refresh the post list
+            navigate('/'); // Go back to home page
         } catch {
-            // request.js will handle errors
+            // request.js will handle errors, no need for a separate toast here
         } finally {
             setIsSubmitting(false);
         }
@@ -62,11 +90,11 @@ export default function Publish() {
                             onClick={handleSubmit}
                             loading={isSubmitting}
                         >
-                            发布
+                            {isEditMode ? '更新' : '发布'}
                         </Button>
                     }
                 >
-                    发布动态
+                    {isEditMode ? '编辑动态' : '发布动态'}
                 </NavBar>
             </div>
 

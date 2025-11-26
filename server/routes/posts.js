@@ -8,7 +8,7 @@ const router = express.Router();
 router.post('/', authenticateToken, async (req, res) => {
     try {
         const { content, images } = req.body;
-        const userId = req.user.userId;
+        const userId = req.user.id;
 
         // Simple validation
         if (!content && (!images || images.length === 0)) {
@@ -24,7 +24,7 @@ router.post('/', authenticateToken, async (req, res) => {
             status: 'published',
         });
 
-        console.log('✅ ', req.user.username, ' 发布新帖子');
+        console.log('✅', req.user.username, ' 发布新帖子');
 
         res.status(201).json({
             message: '发布成功',
@@ -61,6 +61,68 @@ router.get('/', async (req, res) => {
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: '获取列表失败' });
+    }
+});
+
+// update a post (PUT /api/posts/:id)
+router.put('/:id', authenticateToken, async (req, res) => {
+    try {
+        const postId = req.params.id;
+        const userId = req.user.id;
+        const { content, images } = req.body;
+
+        const post = await Post.findByPk(postId);
+
+        if (!post) {
+            return res.status(404).json({ message: '帖子不存在' });
+        }
+
+        if (post.user_id !== userId) {
+            return res.status(403).json({ message: '无权编辑此帖子' });
+        }
+
+        // Update post
+        post.content = content;
+        post.images = images || [];
+        post.status = 'published';
+        await post.save();
+
+        console.log('✅', req.user.username, ' 更新了帖子');
+
+        res.status(200).json({
+            message: '更新成功',
+            post: post,
+        });
+    } catch (error) {
+        console.error('更新失败:', error);
+        res.status(500).json({ message: '服务器错误' });
+    }
+});
+
+// Delete a post (DELETE /api/posts/:id)
+router.delete('/:id', authenticateToken, async (req, res) => {
+    try {
+        const postId = req.params.id;
+        const userId = req.user.id;
+
+        const post = await Post.findByPk(postId);
+
+        if (!post) {
+            return res.status(404).json({ message: '帖子不存在' });
+        }
+
+        if (post.user_id !== userId) {
+            return res.status(403).json({ message: '无权删除此帖子' });
+        }
+
+        await post.destroy();
+
+        console.log('✅', req.user.username, '删除了帖子');
+
+        res.status(200).json({ message: '删除成功' });
+    } catch (error) {
+        console.error('删除失败:', error);
+        res.status(500).json({ message: '服务器错误' });
     }
 });
 

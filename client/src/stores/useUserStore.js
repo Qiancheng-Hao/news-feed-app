@@ -2,9 +2,8 @@ import { create } from 'zustand';
 import request from '../utils/request';
 
 const useUserStore = create((set, get) => ({
-
     token: localStorage.getItem('token') || null,
-    user: null,
+    user: JSON.parse(sessionStorage.getItem('user')) || null,
 
     // login
     setToken: (token) => {
@@ -12,11 +11,21 @@ const useUserStore = create((set, get) => ({
         set({ token });
     },
 
+    setUser: (user) => {
+        sessionStorage.setItem('user', JSON.stringify(user));
+        set({ user });
+    },
+
     // fetch user info action: call backend API
     fetchUserInfo: async () => {
+        const token = get().token;
+        if (!token) {
+            return;
+        }
+
         try {
             const res = await request.get('/auth/me');
-            set({ user: res.yourData });
+            get().setUser(res.yourData);
         } catch (error) {
             console.error('获取用户信息失败', error);
         }
@@ -25,6 +34,7 @@ const useUserStore = create((set, get) => ({
     // logout
     logout: () => {
         localStorage.removeItem('token');
+        sessionStorage.removeItem('user');
         set({ token: null, user: null });
     },
 }));

@@ -18,12 +18,12 @@ const authenticateToken = async (req, res, next) => {
         }
         // additionally check if user still exists in DB
         try {
-            const userexist = await User.findByPk(user.userId);
+            const userexist = await User.findByPk(user.id);
             if (!userexist) {
                 return res.status(401).json({ message: '用户不存在' });
             }
         } catch (e) {
-            return res.status(500).json({ message: '服务器繁忙, 请稍后再试: '});
+            return res.status(500).json({ message: '服务器繁忙, 请稍后再试' });
         }
 
         // 3. verification passed, store user info in req for later use

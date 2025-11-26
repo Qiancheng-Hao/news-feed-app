@@ -10,6 +10,7 @@ export default function Login() {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
     const setToken = useUserStore((state) => state.setToken);
+    const setUser = useUserStore((state) => state.setUser);
     const [loginType, setLoginType] = useState('password');
 
     // on form submit
@@ -20,9 +21,10 @@ export default function Login() {
             // call backend login API
             const res = await request.post('/auth/login', values);
 
-            // login successful: store Token and navigate to home page
+            // login successful: store Token and user data
             Toast.show({ content: '登录成功', icon: 'success' });
             setToken(res.token);
+            setUser(res.user);
             navigate('/');
         } catch {
             setLoading(false);

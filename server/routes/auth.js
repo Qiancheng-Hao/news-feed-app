@@ -143,7 +143,7 @@ router.post('/login', async (req, res) => {
 
         // generate Token (valid for 3 hours)
         const token = jwt.sign(
-            { userId: user.id, username: user.username, avatar: user.avatar }, // Data to include in the Token
+            { id: user.id, username: user.username, avatar: user.avatar }, // Data to include in the Token
             process.env.JWT_SECRET || 'default_secret', // Secret key
             { expiresIn: '3h' }
         );

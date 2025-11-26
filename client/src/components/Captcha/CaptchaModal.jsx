@@ -1,4 +1,3 @@
-import React from 'react';
 import { CenterPopup } from 'antd-mobile';
 import SliderCaptcha from './SliderCaptcha';
 

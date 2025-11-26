@@ -1,5 +1,10 @@
-import { Card, Avatar, Image, ImageViewer } from 'antd-mobile';
+import { Card, Avatar, Image, ImageViewer, Popover, Toast, Button } from 'antd-mobile';
 import { useState } from 'react';
+import { MoreOutline, EditSOutline, DeleteOutline } from 'antd-mobile-icons';
+import useUserStore from '../../stores/useUserStore';
+import usePostStore from '../../stores/usePostStore';
+import request from '../../utils/request';
+import { useNavigate } from 'react-router-dom';
 import './TipTap.css';
 
 // function to get thumbnail URL
@@ -13,6 +18,51 @@ const getThumbnailUrl = (url) => {
 export default function PostCard({ post, priority = false }) {
     const [visible, setVisible] = useState(false);
     const [imageIndex, setImageIndex] = useState(0);
+    const [popoverVisible, setPopoverVisible] = useState(false);
+    const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+    const navigate = useNavigate();
+
+    const { user } = useUserStore(); // Correctly get user
+    const { removePost } = usePostStore(); // Get removePost function from the store
+
+    const isAuthor = user?.id === post.User?.id;
+
+    const handlePopoverVisibleChange = (visible) => {
+        setPopoverVisible(visible);
+        if (!visible) {
+            // Reset confirmation state when popover is hidden
+            setIsConfirmingDelete(false);
+        }
+    };
+
+    // The actual deletion logic
+    const executeDelete = async () => {
+        setPopoverVisible(false); // Close popover
+        try {
+            await request.delete(`/posts/${post.id}`);
+            Toast.show('删除成功');
+            removePost(post.id);
+        } catch {
+            // request.js handles error
+        }
+    };
+
+    // User clicks the initial delete icon
+    const handleDeleteClick = () => {
+        setIsConfirmingDelete(true);
+    };
+
+    // User clicks "Back" during confirmation
+    const handleCancelDelete = () => {
+        setIsConfirmingDelete(false);
+    };
+
+    // edit post
+    const handleEdit = () => {
+        setPopoverVisible(false);
+        setIsConfirmingDelete(false);
+        navigate('/publish', { state: { post } });
+    };
 
     // format date
     const formatDate = (dateStr) => {
@@ -129,9 +179,6 @@ export default function PostCard({ post, priority = false }) {
                     <div style={{ fontWeight: 'bold', fontSize: '16px' }}>
                         {post.User?.username || '未知用户'}
                     </div>
-                    <div style={{ color: '#999', fontSize: '12px', marginTop: '2px' }}>
-                        {formatDate(post.created_at)}
-                    </div>
                 </div>
             </div>
 
@@ -159,6 +206,81 @@ export default function PostCard({ post, priority = false }) {
                     key={imageIndex}
                 />
             )}
+
+            {/* Footer with time and actions */}
+            <div
+                style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginTop: '12px',
+                    color: '#999',
+                    fontSize: '12px',
+                }}
+            >
+                <div>
+                    {post.updated_at &&
+                    new Date(post.updated_at) >
+                        new Date(new Date(post.created_at).getTime() + 1000)
+                        ? `编辑于 ${formatDate(post.updated_at)}`
+                        : formatDate(post.created_at)}
+                </div>
+
+                {isAuthor && (
+                    <Popover
+                        placement="left"
+                        visible={popoverVisible}
+                        onVisibleChange={handlePopoverVisibleChange}
+                        content={
+                            isConfirmingDelete ? (
+                                // Confirmation view
+                                <div style={{ display: 'flex', alignItems: 'center' }}>
+                                    <Button size="small" fill="none" onClick={handleCancelDelete}>
+                                        返回
+                                    </Button>
+                                    <div
+                                        style={{
+                                            height: '14px',
+                                            borderLeft: '1px solid var(--adm-color-border)',
+                                            margin: '0 4px',
+                                        }}
+                                    ></div>
+                                    <Button size="small" fill="none" color="danger" onClick={executeDelete}>
+                                        删除
+                                    </Button>
+                                </div>
+                            ) : (
+                                // Initial view
+                                <div style={{ display: 'flex', alignItems: 'center' }}>
+                                    <Button size="small" fill="none" onClick={handleEdit}>
+                                        <EditSOutline />
+                                    </Button>
+                                    <div
+                                        style={{
+                                            height: '14px',
+                                            borderLeft: '1px solid var(--adm-color-border)',
+                                            margin: '0 4px',
+                                        }}
+                                    ></div>
+                                    <Button
+                                        size="small"
+                                        fill="none"
+                                        color="danger"
+                                        onClick={handleDeleteClick}
+                                    >
+                                        <DeleteOutline />
+                                    </Button>
+                                </div>
+                            )
+                        }
+                        trigger="click"
+                    >
+                        <div style={{ padding: '0 8px', color: '#999' }}>
+                            <MoreOutline fontSize={20} />
+                        </div>
+                    </Popover>
+                )}
+            </div>
         </Card>
     );
 }

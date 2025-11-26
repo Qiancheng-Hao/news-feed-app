@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { TabBar } from 'antd-mobile';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { AppOutline, AddCircleOutline, UserOutline } from 'antd-mobile-icons';
+import useUserStore from '../stores/useUserStore';
 
 export default function BasicLayout() {
     const navigate = useNavigate();
@@ -10,6 +11,14 @@ export default function BasicLayout() {
 
     // control active tab state
     const [activeKey, setActiveKey] = useState(pathname);
+
+    const { fetchUserInfo, user } = useUserStore();
+    // on App start, fetch user info if not present
+    useEffect(() => {
+        if (!user) {
+            fetchUserInfo();
+        }
+    }, []);
 
     // update activeKey when pathname changes
     useEffect(() => {

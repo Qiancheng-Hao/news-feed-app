@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import './SliderCaptcha.css';
 
 export default function SliderCaptcha({ onSuccess, onFail }) {

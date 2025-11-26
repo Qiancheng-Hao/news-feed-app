@@ -61,6 +61,9 @@ const usePostStore = create((set, get) => ({
 
     // clear posts
     clearPosts: () => set({ posts: [], page: 1, hasMore: true }),
+
+    // remove post by id
+    removePost: (postId) => set((state) => ({ posts: state.posts.filter((post) => post.id !== postId) })),
 }));
 
 export default usePostStore;

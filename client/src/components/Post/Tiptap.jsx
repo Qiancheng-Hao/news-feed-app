@@ -28,6 +28,8 @@ import {
 } from '@arco-design/web-react/icon';
 import '@arco-design/web-react/dist/css/arco.css';
 import { Extension } from '@tiptap/core';
+import { liftTarget } from '@tiptap/pm/transform';
+import { findWrapping } from '@tiptap/pm/transform';
 import './TipTap.css';
 
 // Initialize lowlight with common languages (js, css, html, python, etc.)
@@ -61,6 +63,93 @@ const extensions = [
     }),
     TabKeyExtension,
 ];
+
+const toggleBlockquoteCommand = (editor) => {
+    // 判断是否在引用块里
+    const isBlockquote = editor.isActive('blockquote');
+
+    if (!isBlockquote) {
+        // 如果不在引用块，直接加上
+        return editor
+            .chain()
+            .focus()
+            .command(({ state, tr, dispatch }) => {
+                const { $from, $to } = state.selection;
+                const blockquoteType = state.schema.nodes.blockquote;
+
+                // findWrappingUntil 算法
+                let $pos = $from;
+                let range;
+                let wrap;
+
+                // 死循环向上查找，直到找到能包的位置，或者到顶为止
+                while (true) {
+                    // 获取当前层级的范围
+                    range = $pos.blockRange($to);
+                    if (!range) break;
+
+                    wrap = findWrapping(range, blockquoteType);
+
+                    // 能包括
+                    if (wrap) {
+                        break;
+                    }
+
+                    if (range.depth > 0) {
+                        $pos = state.doc.resolve(range.start - 1);
+                    } else {
+                        break;
+                    }
+                }
+
+                // --- 执行包裹 ---
+                if (wrap && range) {
+                    if (dispatch) {
+                        tr.wrap(range, wrap);
+                    }
+                    return true;
+                }
+
+                return false;
+            })
+            .run();
+    }
+
+    // 如果在引用块里，检查是否在列表里
+    if (editor.isActive('bulletList') || editor.isActive('orderedList')) {
+        // --- 核心修复逻辑 ---
+        return editor
+            .chain()
+            .focus()
+            .command(({ state, tr, dispatch }) => {
+                const { $from, $to } = state.selection;
+
+                // 获取 blockquote 的节点类型
+                const blockquoteType = state.schema.nodes.blockquote;
+
+                // 寻找包裹当前选区的 blockquote 范围
+                const range = $from.blockRange($to, (node) => node.type === blockquoteType);
+
+                if (range) {
+                    //  计算提升的目标深度
+                    const target = liftTarget(range);
+
+                    // 检查是否是数字
+                    if (typeof target === 'number') {
+                        if (dispatch) {
+                            tr.lift(range, target);
+                        }
+                        return true;
+                    }
+                }
+                return false;
+            })
+            .run();
+    }
+
+    // 普通情况（不在列表里），直接移除
+    return editor.chain().focus().unsetBlockquote().run();
+};
 
 function MenuBar({ editor }) {
     // Read the current editor's state, and re-render the component when it changes
@@ -144,32 +233,7 @@ function MenuBar({ editor }) {
             isActive: editorState.isHeading3,
             icon: <IconH3 />,
         },
-        // {
-        //     label: 'H4',
-        //     action: () => editor.chain().focus().toggleHeading({ level: 4 }).run(),
-        //     isActive: editorState.isHeading4,
-        //     icon: <IconH4 />,
-        // },
-        // {
-        //     label: 'H5',
-        //     action: () => editor.chain().focus().toggleHeading({ level: 5 }).run(),
-        //     isActive: editorState.isHeading5,
-        //     icon: <IconH5 />,
-        // },
-        // {
-        //     label: 'H6',
-        //     action: () => editor.chain().focus().toggleHeading({ level: 6 }).run(),
-        //     isActive: editorState.isHeading6,
-        //     icon: <IconH6 />,
-        // },
 
-        // { label: 'Clear marks', action: () => editor.chain().focus().unsetAllMarks().run() },
-        // { label: 'Clear nodes', action: () => editor.chain().focus().clearNodes().run() },
-        // {
-        //     label: 'Paragraph',
-        //     action: () => editor.chain().focus().setParagraph().run(),
-        //     isActive: editorState.isParagraph,
-        // },
         {
             label: 'Bullet list',
             action: () => editor.chain().focus().toggleBulletList().run(),
@@ -182,11 +246,11 @@ function MenuBar({ editor }) {
             isActive: editorState.isOrderedList,
             icon: <IconOrderedList />,
         },
-
         {
             label: 'Blockquote',
-            action: () => editor.chain().focus().toggleBlockquote().run(),
+            action: () => toggleBlockquoteCommand(editor),
             isActive: editorState.isBlockquote,
+            // disabled: editorState.isBulletList || editorState.isOrderedList,
             icon: <IconQuote />,
         },
         {
@@ -216,7 +280,6 @@ function MenuBar({ editor }) {
             isActive: editorState.isCodeBlock,
             icon: <IconCodeSquare />,
         },
-        // { label: 'Hard break', action: () => editor.chain().focus().setHardBreak().run() },
         {
             label: 'Undo',
             action: () => editor.chain().focus().undo().run(),
@@ -229,6 +292,33 @@ function MenuBar({ editor }) {
             disabled: !editorState.canRedo,
             icon: <IconRedo />,
         },
+        // {
+        //     label: 'H4',
+        //     action: () => editor.chain().focus().toggleHeading({ level: 4 }).run(),
+        //     isActive: editorState.isHeading4,
+        //     icon: <IconH4 />,
+        // },
+        // {
+        //     label: 'H5',
+        //     action: () => editor.chain().focus().toggleHeading({ level: 5 }).run(),
+        //     isActive: editorState.isHeading5,
+        //     icon: <IconH5 />,
+        // },
+        // {
+        //     label: 'H6',
+        //     action: () => editor.chain().focus().toggleHeading({ level: 6 }).run(),
+        //     isActive: editorState.isHeading6,
+        //     icon: <IconH6 />,
+        // },
+
+        // { label: 'Clear marks', action: () => editor.chain().focus().unsetAllMarks().run() },
+        // { label: 'Clear nodes', action: () => editor.chain().focus().clearNodes().run() },
+        // {
+        //     label: 'Paragraph',
+        //     action: () => editor.chain().focus().setParagraph().run(),
+        //     isActive: editorState.isParagraph,
+        // },
+        // { label: 'Hard break', action: () => editor.chain().focus().setHardBreak().run() },
     ];
 
     return (
@@ -260,7 +350,6 @@ const Tiptap = ({ value = '', onChange = () => {} }) => {
         content: value,
         onUpdate: ({ editor }) => {
             onChange(editor.getHTML());
-            console.log('Content updated:', editor.getHTML());
         },
         editorProps: {
             attributes: {
