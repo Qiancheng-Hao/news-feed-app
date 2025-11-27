@@ -158,6 +158,17 @@ export default function ImageUpload({ fileList, setFileList, maxCount = 9 }) {
         });
     };
 
+    const getImageUrl = (item) => {
+        if (item.status === 'uploading') {
+            return item.url;
+        }
+        // Safety check: ensure serverUrl exists before calling .includes
+        if (item.serverUrl?.includes('.volces.com')) {
+            return `${item.serverUrl}?x-tos-process=image/resize,w_300`;
+        }
+        return item.serverUrl;
+    };
+
     return (
         <div
             style={{
@@ -182,7 +193,7 @@ export default function ImageUpload({ fileList, setFileList, maxCount = 9 }) {
                 >
                     {/* image */}
                     <img
-                        src={item.url}
+                        src={getImageUrl(item)}
                         alt="upload"
                         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                     />

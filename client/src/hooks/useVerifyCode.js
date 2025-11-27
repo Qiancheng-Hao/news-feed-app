@@ -10,6 +10,7 @@ export default function useVerifyCode() {
     const [captchaKey, setCaptchaKey] = useState(0);
 
     const pendingEmailRef = useRef('');
+    const typeRef = useRef('');
 
     useEffect(() => {
         let timer;
@@ -24,10 +25,11 @@ export default function useVerifyCode() {
     // send code after captcha success
     const handleSubmission = async () => {
         const email = pendingEmailRef.current;
+        const type = typeRef.current;
         setIsSending(true);
         try {
             setCaptchaVisible(false);
-            await request.post('/auth/send-code', { email });
+            await request.post('/auth/send-code', { email, type });
             Toast.show('验证码已发送');
             setCountdown(60);
         } catch {
@@ -38,8 +40,9 @@ export default function useVerifyCode() {
     };
 
     // trigger verify process
-    const sendCode = (email) => {
-        pendingEmailRef.current = email; // store email for later use
+    const sendCode = (email, type) => {
+        pendingEmailRef.current = email; 
+        typeRef.current = type;
         setCaptchaKey(Date.now()); // update key to reset captcha
         setCaptchaVisible(true); // show captcha modal
     };

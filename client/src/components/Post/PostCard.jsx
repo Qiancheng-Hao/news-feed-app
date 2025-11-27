@@ -61,7 +61,7 @@ export default function PostCard({ post, priority = false }) {
     const handleEdit = () => {
         setPopoverVisible(false);
         setIsConfirmingDelete(false);
-        navigate('/publish', { state: { post } });
+        navigate(`/publish?id=${post.id}`, { state: { post } });
     };
 
     // format date

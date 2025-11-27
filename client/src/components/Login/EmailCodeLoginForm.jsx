@@ -30,7 +30,7 @@ export default function EmailCodeLoginForm({ onFinish, loading }) {
             setIsSending(true);
             await form.validateFields(['email']);
             const email = form.getFieldValue('email');
-            sendCode(email); // handle sending code with captcha verification
+            sendCode(email, 'login');
         } catch {
             setIsSending(false);
         }

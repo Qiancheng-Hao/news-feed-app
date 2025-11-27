@@ -15,7 +15,7 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 // 接口：发送验证码 (POST /api/auth/send-code) ===
 router.post('/send-code', async (req, res) => {
-    const { email } = req.body;
+    const { email, type } = req.body;
 
     if (!email) {
         return res.status(400).json({ message: '请输入邮箱地址' });
@@ -31,7 +31,7 @@ router.post('/send-code', async (req, res) => {
         const data = await resend.emails.send({
             from: 'noreply@newsfeedapp.me',
             to: email,
-            subject: '【News App】注册验证码',
+            subject: `【News App】${type === 'register' ? '注册' : '登录'}验证码`,
             html: `<p>您的验证码是：<strong>${code}</strong></p><p>有效期5分钟。如非本人操作请忽略。</p>`,
         });
         if (data.error) {

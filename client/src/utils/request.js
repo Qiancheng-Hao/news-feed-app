@@ -19,6 +19,11 @@ request.interceptors.request.use((config) => {
 // response interceptor: handle errors uniformly
 request.interceptors.response.use(
     (response) => {
+        // Check for token refresh
+        const newToken = response.headers['x-new-token'];
+        if (newToken) {
+            localStorage.setItem('token', newToken);
+        }
         return response.data;
     },
     (error) => {

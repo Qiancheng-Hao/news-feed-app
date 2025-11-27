@@ -3,6 +3,15 @@
     margin-top: 0;
 }
 
+/* Image styles
+.tiptap img {
+    max-width: 50%;
+    height: auto;
+    display: block;
+    margin: 1rem 0;
+    border-radius: 8px;
+} */
+
 /* List styles */
 .tiptap ul,
 .tiptap ol {

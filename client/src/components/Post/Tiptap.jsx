@@ -1,12 +1,16 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { TextStyleKit } from '@tiptap/extension-text-style';
 import { EditorContent, useEditor, useEditorState } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
 import Placeholder from '@tiptap/extension-placeholder';
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
+// import Image from '@tiptap/extension-image';
 import { common, createLowlight } from 'lowlight';
 import { Button } from '@arco-design/web-react';
+// import { Toast } from 'antd-mobile';
+// import request from '../../utils/request';
+// import axios from 'axios';
 import {
     IconH1,
     IconH2,
@@ -25,6 +29,7 @@ import {
     IconUndo,
     IconRedo,
     IconUnderline,
+    // IconImage,
 } from '@arco-design/web-react/icon';
 import '@arco-design/web-react/dist/css/arco.css';
 import { Extension } from '@tiptap/core';
@@ -61,6 +66,7 @@ const extensions = [
     CodeBlockLowlight.configure({
         lowlight,
     }),
+    Image,
     TabKeyExtension,
 ];
 
@@ -152,6 +158,8 @@ const toggleBlockquoteCommand = (editor) => {
 };
 
 function MenuBar({ editor }) {
+    // const fileInputRef = useRef(null);
+
     // Read the current editor's state, and re-render the component when it changes
     const editorState = useEditorState({
         editor,
@@ -184,6 +192,51 @@ function MenuBar({ editor }) {
             };
         },
     });
+
+    // const handleImageUpload = async (e) => {
+    //     const file = e.target.files[0];
+    //     if (!file) return;
+
+    //     // Clear input so same file can be selected again
+    //     e.target.value = '';
+
+    //     if (file.size > 20 * 1024 * 1024) {
+    //         Toast.show('图片过大');
+    //         return;
+    //     }
+
+    //     const loadingToast = Toast.show({
+    //         icon: 'loading',
+    //         content: '上传中...',
+    //         duration: 0,
+    //     });
+
+    //     try {
+    //         // 1. Get presigned URL
+    //         const signRes = await request.get('/upload/presign', {
+    //             params: { fileName: file.name, fileType: file.type },
+    //         });
+    //         const { uploadUrl, publicUrl } = signRes;
+
+    //         // 2. Upload to cloud
+    //         await axios.put(uploadUrl, file, {
+    //             headers: { 'Content-Type': file.type },
+    //         });
+
+    //         // 3. Insert into editor
+    //         if (editor) {
+    //             // Append resize parameter to optimize display
+    //             const optimizedUrl = `${publicUrl}?x-tos-process=image/resize,w_800`;
+    //             editor.chain().focus().setImage({ src: optimizedUrl }).run();
+    //         }
+    //         loadingToast.close();
+    //         Toast.show({ icon: 'success', content: '上传成功' });
+    //     } catch (error) {
+    //         console.error(error);
+    //         loadingToast.close();
+    //         Toast.show({ icon: 'fail', content: '上传失败' });
+    //     }
+    // };
 
     // Button configuration array
     const buttons = [
@@ -253,6 +306,12 @@ function MenuBar({ editor }) {
             // disabled: editorState.isBulletList || editorState.isOrderedList,
             icon: <IconQuote />,
         },
+        // {
+        //     label: 'Image',
+        //     action: () => fileInputRef.current.click(),
+        //     isActive: false,
+        //     icon: <IconImage />,
+        // },
         {
             label: 'Horizontal rule',
             action: () => editor.chain().focus().setHorizontalRule().run(),
@@ -323,6 +382,16 @@ function MenuBar({ editor }) {
 
     return (
         <div className="button-group" aria-label="Formatting toolbar" role="toolbar">
+            {/* 
+            <input
+                type="file"
+                accept="image/*"
+                ref={fileInputRef}
+                style={{ display: 'none' }}
+                onChange={handleImageUpload}
+            />
+            */}
+
             {buttons.map((btn, index) => (
                 <Button
                     style={{
