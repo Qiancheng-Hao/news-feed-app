@@ -27,16 +27,20 @@ request.interceptors.response.use(
         return response.data;
     },
     (error) => {
-        // 1. Extract error message from response
+        // Extract error message from response
         const errorMessage = error.response?.data?.message || '请求失败';
 
         if (error.response && error.response.status === 403) {
             window.location.href = '/login';
         } else if (error.response && error.response.status === 401) {
             const isLoginRequest = error.config.url.includes('/auth/login');
+            const isAuthCheck = error.config.url.includes('/auth/me'); // Check if it's the "me" endpoint
 
             if (isLoginRequest) {
                 Toast.show({ content: errorMessage, icon: 'fail' });
+            } else if (isAuthCheck) {
+                // If /auth/me fails, just clear token and let user stay as guest
+                localStorage.removeItem('token');
             } else {
                 // If other endpoints return 401, it means the Token has truly expired
                 Toast.show({ content: '登录过期，请重新登录' });
@@ -48,7 +52,7 @@ request.interceptors.response.use(
                 }
             }
         } else {
-            // 3. Handle other errors
+            // Handle other errors
             Toast.show({ content: errorMessage, icon: 'fail' });
         }
 

@@ -1,13 +1,38 @@
 const express = require('express');
-const { Post, User } = require('../db');
+const { Post, User, sequelize } = require('../db');
 const authenticateToken = require('../middleware/authMiddleware');
+const { generateTags } = require('../utils/ai');
+const { Op } = require('sequelize');
 
 const router = express.Router();
+
+async function processPostTagsInBackground(postId, content, images, postStatus) {
+    // Only process if published and has content/images
+    if (postStatus === 'published' && (content || (images && images.length > 0))) {
+        try {
+            const generatedTags = await generateTags(content, images);
+            if (generatedTags && generatedTags.length > 0) {
+                const currentPost = await Post.findByPk(postId);
+                if (currentPost) {
+                    const existingTags = currentPost.tags || [];
+                    const mergedTags = Array.from(
+                        new Set([...existingTags, ...generatedTags])
+                    ).slice(0, 5);
+                    currentPost.tags = mergedTags;
+                    await currentPost.save();
+                    console.log(`🏷️ Tags processed for post ${postId}:`, mergedTags);
+                }
+            }
+        } catch (err) {
+            console.error(`❌ Background tag processing failed for post ${postId}:`, err);
+        }
+    }
+}
 
 // Create a new post (published or draft) (POST /api/posts)
 router.post('/', authenticateToken, async (req, res) => {
     try {
-        const { content, images, status = 'published' } = req.body;
+        const { content, images, tags, status = 'published' } = req.body;
         const userId = req.user.id;
 
         // Content or images required validation
@@ -20,7 +45,7 @@ router.post('/', authenticateToken, async (req, res) => {
             user_id: userId,
             content: content || '',
             images: images || [],
-            tags: [],
+            tags: tags || [],
             status: status,
         });
 
@@ -30,8 +55,11 @@ router.post('/', authenticateToken, async (req, res) => {
             `${status === 'published' ? '发布了帖子' : '保存了草稿'}`
         );
 
-        // Return the post object directly
+        // Return the post object before tag generation
         res.status(201).json(newPost);
+
+        // Trigger background tag processing
+        processPostTagsInBackground(newPost.id, content, images, status);
     } catch (error) {
         console.error('创建失败:', error);
         res.status(500).json({ message: '服务器错误' });
@@ -119,7 +147,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
     try {
         const postId = req.params.id;
         const userId = req.user.id;
-        const { content, images, status } = req.body;
+        const { content, images, tags, status } = req.body;
 
         const post = await Post.findByPk(postId);
 
@@ -134,11 +162,15 @@ router.put('/:id', authenticateToken, async (req, res) => {
         // Update fields
         if (content !== undefined) post.content = content;
         if (images !== undefined) post.images = images;
+        if (tags !== undefined) post.tags = tags;
         if (status !== undefined) post.status = status;
 
         await post.save();
 
         res.status(200).json(post);
+
+        // Trigger background tag processing
+        processPostTagsInBackground(postId, post.content, post.images, post.status);
     } catch (error) {
         console.error('更新失败:', error);
         res.status(500).json({ message: '服务器错误' });

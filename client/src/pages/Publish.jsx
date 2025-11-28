@@ -10,6 +10,8 @@ export default function Publish() {
         setContent,
         fileList,
         setFileList,
+        tags,
+        setTags,
         isSubmitting,
         statusText,
         isEditMode,
@@ -76,6 +78,41 @@ export default function Publish() {
                 <div style={{ padding: '16px', flex: 1 }}>
                     <div style={{ marginBottom: '20px', flex: 1 }}>
                         <Tiptap value={content} onChange={(html) => setContent(html)} />
+                        {/* Tags Display */}
+                        {tags.length > 0 && (
+                            <div
+                                style={{
+                                    display: 'flex',
+                                    flexWrap: 'wrap',
+                                    gap: '8px',
+                                    marginTop: '12px',
+                                }}
+                            >
+                                {tags.map((tag, index) => (
+                                    <span
+                                        key={index}
+                                        style={{
+                                            background: '#e6f7ff',
+                                            color: '#1890ff',
+                                            padding: '4px 12px',
+                                            borderRadius: '16px',
+                                            fontSize: '14px',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '4px',
+                                        }}
+                                    >
+                                        #{tag}
+                                        <span
+                                            style={{ cursor: 'pointer', fontWeight: 'bold' }}
+                                            onClick={() => setTags((prev) => prev.filter((t) => t !== tag))}
+                                        >
+                                            ×
+                                        </span>
+                                    </span>
+                                ))}
+                            </div>
+                        )}
                     </div>
                     <ImageUpload fileList={fileList} setFileList={setFileList} maxCount={9} />
                 </div>

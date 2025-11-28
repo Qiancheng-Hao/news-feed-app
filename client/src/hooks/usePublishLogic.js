@@ -5,6 +5,16 @@ import request from '../utils/request';
 import useUserStore from '../stores/useUserStore';
 import usePostStore from '../stores/usePostStore';
 
+// check if HTML content is effectively empty
+const isContentEmpty = (html) => {
+    if (!html) return true;
+    // Remove HTML tags
+    let text = html.replace(/<[^>]*>/g, '');
+    // Replace common HTML entities
+    text = text.replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+    return !text.trim();
+};
+
 export default function usePublishLogic() {
     const navigate = useNavigate();
     const location = useLocation();
@@ -26,12 +36,14 @@ export default function usePublishLogic() {
     const [draftId, setDraftId] = useState(null); // ID of the draft (for new posts) or the post being edited
     const [content, setContent] = useState('');
     const [fileList, setFileList] = useState([]);
+    const [tags, setTags] = useState([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isOnline, setIsOnline] = useState(navigator.onLine); // Network status
     const [statusText, setStatusText] = useState('准备就绪');
 
     const contentRef = useRef(content);
     const fileListRef = useRef(fileList);
+    const tagsRef = useRef(tags);
     const draftIdRef = useRef(draftId);
     const originalDataRef = useRef(null); // Store original data for reset
 
@@ -41,6 +53,9 @@ export default function usePublishLogic() {
     useEffect(() => {
         fileListRef.current = fileList;
     }, [fileList]);
+    useEffect(() => {
+        tagsRef.current = tags;
+    }, [tags]);
     useEffect(() => {
         draftIdRef.current = draftId;
     }, [draftId]);
@@ -118,6 +133,7 @@ export default function usePublishLogic() {
                             status: 'done',
                         })) || [];
                     setFileList(images);
+                    setTags(initialData.tags || []);
                     setStatusText('正在编辑');
                 } else {
                     setStatusText('无法加载原帖，请从列表重新进入');
@@ -159,6 +175,18 @@ export default function usePublishLogic() {
                             status: 'done',
                         })) || [];
                     setFileList(images);
+                    setTags(dataToLoad.tags || []);
+                }
+
+                // Handle Topic from URL or State
+                const topic = location.state?.topic || searchParams.get('topic');
+                if (topic) {
+                    setTags((prev) => {
+                        if (!prev.includes(topic)) {
+                            return [...prev, topic];
+                        }
+                        return prev;
+                    });
                 }
             }
         };
@@ -172,21 +200,22 @@ export default function usePublishLogic() {
         if (!DRAFT_LOCAL_STORAGE_KEY) return;
 
         // Don't save empty state if we haven't initialized yet
-        if (!content && fileList.length === 0) return;
+        if (isContentEmpty(content) && fileList.length === 0 && tags.length === 0) return;
 
         const localDraft = {
             id: draftId, // For edit: original post ID. For new: draft ID. For brand new: null
             content: content,
             images: fileList.map((f) => f.serverUrl).filter(Boolean),
+            tags: tags,
             updated_at: new Date().toISOString(),
         };
         localStorage.setItem(DRAFT_LOCAL_STORAGE_KEY, JSON.stringify(localDraft));
         setStatusText('更改已保存至本地');
-    }, [content, fileList, draftId, DRAFT_LOCAL_STORAGE_KEY]);
+    }, [content, fileList, tags, draftId, DRAFT_LOCAL_STORAGE_KEY]);
 
     //  Auto-save to Cloud (NEW POSTS ONLY)
     const saveDraftToCloud = useCallback(
-        async (force = false) => {
+        async () => {
             // We DO NOT auto-save to cloud for Edit Mode to prevent overwriting live posts
             if (isEditMode) return;
 
@@ -197,8 +226,9 @@ export default function usePublishLogic() {
 
             const currentContent = contentRef.current;
             const currentFileList = fileListRef.current;
+            const currentTags = tagsRef.current;
 
-            if (!force && currentContent === '' && currentFileList.length === 0) {
+            if (isContentEmpty(currentContent) && currentFileList.length === 0 && currentTags.length === 0) {
                 return;
             }
 
@@ -207,6 +237,7 @@ export default function usePublishLogic() {
                 const payload = {
                     content: currentContent,
                     images: currentFileList.map((f) => f.serverUrl).filter(Boolean),
+                    tags: currentTags,
                     status: 'draft',
                 };
 
@@ -259,7 +290,7 @@ export default function usePublishLogic() {
 
         // Reset State
         if (isEditMode && originalDataRef.current) {
-            const { content, images } = originalDataRef.current;
+            const { content, images, tags } = originalDataRef.current;
             setContent(content || '');
             const formattedImages =
                 images?.map((url) => ({
@@ -269,18 +300,20 @@ export default function usePublishLogic() {
                     status: 'done',
                 })) || [];
             setFileList(formattedImages);
+            setTags(tags || []);
             setStatusText('已重置为原帖内容');
         } else {
             // Clear everything
             setContent('');
             setFileList([]);
+            setTags([]);
             setStatusText('内容已清空');
         }
     };
 
     //  Final Publish
     const handleSubmit = async () => {
-        if (contentRef.current === '' && fileListRef.current.length === 0)
+        if (isContentEmpty(contentRef.current) && fileListRef.current.length === 0)
             return Toast.show('写点什么吧...');
         if (fileListRef.current.some((item) => item.status === 'uploading'))
             return Toast.show('图片还在上传中...');
@@ -292,6 +325,7 @@ export default function usePublishLogic() {
                 await request.put(`/posts/${editPostId}`, {
                     content: contentRef.current,
                     images: fileListRef.current.map((item) => item.serverUrl).filter(Boolean),
+                    tags: tagsRef.current,
                     status: 'published',
                 });
                 Toast.show({ content: '更新成功！', icon: 'success' });
@@ -300,6 +334,7 @@ export default function usePublishLogic() {
                 await request.post('/posts', {
                     content: contentRef.current,
                     images: fileListRef.current.map((item) => item.serverUrl).filter(Boolean),
+                    tags: tagsRef.current,
                     status: 'published',
                 });
 
@@ -334,6 +369,8 @@ export default function usePublishLogic() {
         setContent,
         fileList,
         setFileList,
+        tags,
+        setTags,
         isSubmitting,
         statusText,
         isEditMode,

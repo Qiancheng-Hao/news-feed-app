@@ -207,6 +207,28 @@ export default function PostCard({ post, priority = false }) {
                 />
             )}
 
+            {/* Tags */}
+            {post.tags && post.tags.length > 0 && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '8px' }}>
+                    {post.tags.map((tag, index) => (
+                        <span
+                            key={index}
+                            onClick={() => navigate('/publish', { state: { topic: tag } })}
+                            style={{
+                                background: '#f0f2f5',
+                                color: '#1677ff',
+                                padding: '2px 8px',
+                                borderRadius: '4px',
+                                fontSize: '12px',
+                                cursor: 'pointer',
+                            }}
+                        >
+                            #{tag}
+                        </span>
+                    ))}
+                </div>
+            )}
+
             {/* Footer with time and actions */}
             <div
                 style={{
@@ -219,11 +241,12 @@ export default function PostCard({ post, priority = false }) {
                 }}
             >
                 <div>
-                    {post.updated_at &&
+                    {/* {post.updated_at &&
                     new Date(post.updated_at) >
                         new Date(new Date(post.created_at).getTime() + 1000)
                         ? `编辑于 ${formatDate(post.updated_at)}`
-                        : formatDate(post.created_at)}
+                        : formatDate(post.created_at)} */}
+                    {formatDate(post.created_at)}
                 </div>
 
                 {isAuthor && (
