@@ -3,7 +3,7 @@ import SliderCaptcha from './SliderCaptcha';
 
 export default function CaptchaModal({ visible, onClose, onSuccess, captchaKey }) {
     return (
-        <CenterPopup visible={visible} onMaskClick={onClose}>
+        <CenterPopup visible={visible} onMaskClick={onClose} style={{ '--z-index': '9999' }}>
             <div
                 style={{
                     backgroundColor: '#fff',
@@ -25,7 +25,6 @@ export default function CaptchaModal({ visible, onClose, onSuccess, captchaKey }
 
                 {/* Slide Captcha */}
                 <SliderCaptcha key={captchaKey} onSuccess={onSuccess} />
-                
                 {/* close button */}
                 <div
                     style={{

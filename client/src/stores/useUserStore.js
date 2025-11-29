@@ -31,6 +31,19 @@ const useUserStore = create((set, get) => ({
         }
     },
 
+    // update user info
+    updateUserInfo: async (data) => {
+        try {
+            const res = await request.put('/auth/update', data);
+            if (res && res.user) {
+                get().setUser(res.user);
+            }
+            return res;
+        } catch (error) {
+            console.error('更新用户信息失败', error);
+        }
+    },
+
     // logout
     logout: () => {
         localStorage.removeItem('token');

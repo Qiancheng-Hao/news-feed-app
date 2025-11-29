@@ -27,11 +27,15 @@ router.post('/send-code', async (req, res) => {
     // store in memory, expire in 5 minutes
     codeStore.set(email, { code, expire: Date.now() + 5 * 60 * 1000 });
 
+    let subjectType = '登录';
+    if (type === 'register') subjectType = '注册';
+    if (type === 'update_password') subjectType = '修改密码';
+
     try {
         const data = await resend.emails.send({
             from: 'noreply@newsfeedapp.me',
             to: email,
-            subject: `【News App】${type === 'register' ? '注册' : '登录'}验证码`,
+            subject: `【News App】${subjectType}验证码`,
             html: `<p>您的验证码是：<strong>${code}</strong></p><p>有效期5分钟。如非本人操作请忽略。</p>`,
         });
         if (data.error) {
@@ -53,19 +57,19 @@ router.post('/register', async (req, res) => {
     const { email, code, password, username } = req.body;
 
     try {
-        // 1. valideate code
+        // valideate code
         const record = codeStore.get(email);
         if (!record || record.code !== code) {
             return res.status(400).json({ message: '验证码错误或已过期' });
         }
 
-        // 2. check if email already exists
+        // check if email already exists
         const existingUser = await User.findOne({ where: { email } });
         if (existingUser) {
             return res.status(409).json({ message: '该邮箱已被注册' });
         }
 
-        // 3. handle username
+        // handle username
         let finalUsername = username;
 
         // if username provided, check if exists
@@ -81,7 +85,7 @@ router.post('/register', async (req, res) => {
             finalUsername = `User_${emailPrefix}_${randomSuffix}`;
         }
 
-        // 4. create user
+        // create user
         const hashedPassword = await bcrypt.hash(password, 10);
 
         await User.create({
@@ -191,6 +195,70 @@ router.post('/check-email', async (req, res) => {
 
     // return { exists: true/false }
     res.json({ exists: !!user });
+});
+
+// 更新用户信息: PUT /api/auth/update
+router.put('/update', authenticateToken, async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { username, avatar, password, code } = req.body;
+
+        const user = await User.findByPk(userId);
+        if (!user) {
+            return res.status(404).json({ message: '用户不存在' });
+        }
+
+        // Update fields if provided
+        if (username) {
+            // Check if username is taken by another user
+            const existingUser = await User.findOne({ where: { username } });
+            if (existingUser && existingUser.id !== userId) {
+                return res.status(400).json({ message: '用户名已存在' });
+            }
+            user.username = username;
+        }
+
+        if (avatar) {
+            user.avatar = avatar;
+        }
+
+        if (password) {
+            // Verify code for password change
+            const email = user.email;
+            const record = codeStore.get(email);
+            
+            if (!record || record.code !== code) {
+                return res.status(400).json({ message: '验证码错误或已过期' });
+            }
+            
+            // if code expired
+            if (Date.now() > record.expire) {
+                codeStore.delete(email);
+                return res.status(400).json({ message: '验证码已过期' });
+            }
+
+            const hashedPassword = await bcrypt.hash(password, 10);
+            user.password = hashedPassword;
+            
+            codeStore.delete(email);
+        }
+
+        await user.save();
+
+        res.json({
+            message: '更新成功',
+            user: {
+                id: user.id,
+                username: user.username,
+                avatar: user.avatar,
+                email: user.email,
+            },
+        });
+        console.log(`✅ 用户更新: ${user.username} (${user.email})`);
+    } catch (error) {
+        console.error('更新失败:', error);
+        res.status(500).json({ message: '更新失败' });
+    }
 });
 
 module.exports = router;

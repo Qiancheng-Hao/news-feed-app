@@ -11,7 +11,6 @@ const usePostStore = create((set, get) => ({
 
     // fetch posts
     fetchPosts: async (forceRefresh = false) => {
-
         const { isLoading, hasMore, page, posts } = get();
 
         // if not force refresh and we have cached posts, return directly
@@ -37,21 +36,50 @@ const usePostStore = create((set, get) => ({
             const noMoreData = res.length < pageSize;
 
             if (forceRefresh) {
-                // cover old data
+                // Prepend new posts to existing posts & remove duplicates
+                const combinedPosts = [...res, ...posts];
+                const uniquePosts = [];
+                const seenIds = new Set();
+
+                for (const post of combinedPosts) {
+                    if (!seenIds.has(post.id)) {
+                        seenIds.add(post.id);
+                        uniquePosts.push(post);
+                    }
+                }
+
                 set({
-                    posts: res,
-                    page: 2,
+                    posts: uniquePosts,
+                    page: posts.length > 0 ? page : 2,
                     hasMore: !noMoreData,
                     isLoading: false,
                 });
             } else {
-                // append to old data
+                // Append new posts to the end and remove duplicates
+                const combinedPosts = [...posts, ...res];
+                const uniquePosts = [];
+                const seenIds = new Set();
+
+                for (const post of combinedPosts) {
+                    if (!seenIds.has(post.id)) {
+                        seenIds.add(post.id);
+                        uniquePosts.push(post);
+                    }
+                }
+
                 set({
-                    posts: [...posts, ...res],
+                    posts: uniquePosts,
                     page: currentPage + 1,
                     hasMore: !noMoreData,
                     isLoading: false,
                 });
+
+                // how many new posts added
+                const addedCount = uniquePosts.length - posts.length;
+
+                if (addedCount < 5 && !noMoreData) {
+                    get().fetchPosts(false);
+                }
             }
         } catch (error) {
             set({ isLoading: false });
@@ -63,7 +91,8 @@ const usePostStore = create((set, get) => ({
     clearPosts: () => set({ posts: [], page: 1, hasMore: true }),
 
     // remove post by id
-    removePost: (postId) => set((state) => ({ posts: state.posts.filter((post) => post.id !== postId) })),
+    removePost: (postId) =>
+        set((state) => ({ posts: state.posts.filter((post) => post.id !== postId) })),
 }));
 
 export default usePostStore;

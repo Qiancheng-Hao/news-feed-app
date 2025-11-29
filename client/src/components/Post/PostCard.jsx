@@ -164,10 +164,17 @@ export default function PostCard({ post, priority = false }) {
             }}
         >
             {/* user info */}
-            <div style={{ display: 'flex', marginBottom: '12px', minHeight: '40px' }}>
+            <div
+                style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    marginBottom: '12px',
+                    minHeight: '40px',
+                }}
+            >
                 <div style={{ flexShrink: 0, width: '40px', height: '40px', marginRight: '12px' }}>
                     <Avatar
-                        src={post.User?.avatar}
+                        src={`${post.User?.avatar.includes('.volces.com') ? `${post.User?.avatar}?x-tos-process=image/resize,w_300` : post.User?.avatar}`}
                         style={{
                             '--size': '40px',
                             width: '40px',
@@ -191,6 +198,7 @@ export default function PostCard({ post, priority = false }) {
                     whiteSpace: 'pre-wrap',
                     minHeight: '20px',
                     lineHeight: '1.5',
+                    padding: 0,
                 }}
                 dangerouslySetInnerHTML={{ __html: post.content }}
             />
@@ -268,7 +276,12 @@ export default function PostCard({ post, priority = false }) {
                                             margin: '0 4px',
                                         }}
                                     ></div>
-                                    <Button size="small" fill="none" color="danger" onClick={executeDelete}>
+                                    <Button
+                                        size="small"
+                                        fill="none"
+                                        color="danger"
+                                        onClick={executeDelete}
+                                    >
                                         删除
                                     </Button>
                                 </div>
