@@ -14,7 +14,7 @@ const authenticateToken = async (req, res, next) => {
     // verify Token
     jwt.verify(token, process.env.JWT_SECRET || 'default_secret', async (err, decoded) => {
         if (err) {
-            return res.status(403).json({ message: 'Token 无效或已过期' }); // invalid token
+            return res.status(401).json({ message: 'Token 无效或已过期' }); // invalid token
         }
 
         // Check if token needs refresh (If remaining time is less than 1 hour)
