@@ -11,7 +11,11 @@ const isContentEmpty = (html) => {
     // Remove HTML tags
     let text = html.replace(/<[^>]*>/g, '');
     // Replace common HTML entities
-    text = text.replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+    text = text
+        .replace(/&nbsp;/g, ' ')
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>');
     return !text.trim();
 };
 
@@ -202,61 +206,73 @@ export default function usePublishLogic() {
         // Don't save empty state if we haven't initialized yet
         if (isContentEmpty(content) && fileList.length === 0 && tags.length === 0) return;
 
-        const localDraft = {
-            id: draftId, // For edit: original post ID. For new: draft ID. For brand new: null
-            content: content,
-            images: fileList.map((f) => f.serverUrl).filter(Boolean),
-            tags: tags,
-            updated_at: new Date().toISOString(),
+        // Set status to indicate activity
+        setStatusText('输入中...');
+
+        // Debounce: Wait 1000ms after the last change before saving
+        const handler = setTimeout(() => {
+            const localDraft = {
+                id: draftId, // For edit: original post ID. For new: draft ID. For brand new: null
+                content: content,
+                images: fileList.map((f) => f.serverUrl).filter(Boolean),
+                tags: tags,
+                updated_at: new Date().toISOString(),
+            };
+            localStorage.setItem(DRAFT_LOCAL_STORAGE_KEY, JSON.stringify(localDraft));
+            setStatusText('更改已保存至本地');
+        }, 1000);
+
+        // Clear the timeout if the user types again within 1000ms
+        return () => {
+            clearTimeout(handler);
         };
-        localStorage.setItem(DRAFT_LOCAL_STORAGE_KEY, JSON.stringify(localDraft));
-        setStatusText('更改已保存至本地');
     }, [content, fileList, tags, draftId, DRAFT_LOCAL_STORAGE_KEY]);
 
     //  Auto-save to Cloud (NEW POSTS ONLY)
-    const saveDraftToCloud = useCallback(
-        async () => {
-            // We DO NOT auto-save to cloud for Edit Mode to prevent overwriting live posts
-            if (isEditMode) return;
+    const saveDraftToCloud = useCallback(async () => {
+        // We DO NOT auto-save to cloud for Edit Mode to prevent overwriting live posts
+        if (isEditMode) return;
 
-            if (!isOnline) {
-                setStatusText('离线状态');
-                return;
+        if (!isOnline) {
+            setStatusText('离线状态');
+            return;
+        }
+
+        const currentContent = contentRef.current;
+        const currentFileList = fileListRef.current;
+        const currentTags = tagsRef.current;
+
+        if (
+            isContentEmpty(currentContent) &&
+            currentFileList.length === 0 &&
+            currentTags.length === 0
+        ) {
+            return;
+        }
+
+        setStatusText('正在同步至云端...');
+        try {
+            const payload = {
+                content: currentContent,
+                images: currentFileList.map((f) => f.serverUrl).filter(Boolean),
+                tags: currentTags,
+                status: 'draft',
+            };
+
+            let savedDraft;
+            const currentDraftId = draftIdRef.current;
+
+            if (currentDraftId) {
+                savedDraft = await request.put(`/posts/${currentDraftId}`, payload);
+            } else {
+                savedDraft = await request.post('/posts', payload);
+                setDraftId(savedDraft.id);
             }
-
-            const currentContent = contentRef.current;
-            const currentFileList = fileListRef.current;
-            const currentTags = tagsRef.current;
-
-            if (isContentEmpty(currentContent) && currentFileList.length === 0 && currentTags.length === 0) {
-                return;
-            }
-
-            setStatusText('正在同步至云端...');
-            try {
-                const payload = {
-                    content: currentContent,
-                    images: currentFileList.map((f) => f.serverUrl).filter(Boolean),
-                    tags: currentTags,
-                    status: 'draft',
-                };
-
-                let savedDraft;
-                const currentDraftId = draftIdRef.current;
-
-                if (currentDraftId) {
-                    savedDraft = await request.put(`/posts/${currentDraftId}`, payload);
-                } else {
-                    savedDraft = await request.post('/posts', payload);
-                    setDraftId(savedDraft.id);
-                }
-                setStatusText('所有更改已同步至云端');
-            } catch {
-                setStatusText('云端同步失败');
-            }
-        },
-        [isOnline, isEditMode]
-    );
+            setStatusText('所有更改已同步至云端');
+        } catch {
+            setStatusText('云端同步失败');
+        }
+    }, [isOnline, isEditMode]);
 
     // Background sync timer
     useEffect(() => {
@@ -286,6 +302,16 @@ export default function usePublishLogic() {
         // Remove from Local Storage
         if (DRAFT_LOCAL_STORAGE_KEY) {
             localStorage.removeItem(DRAFT_LOCAL_STORAGE_KEY);
+        }
+
+        // If in New Post mode and we have a server draft, delete it
+        if (!isEditMode && draftIdRef.current) {
+            try {
+                await request.delete(`/posts/${draftIdRef.current}`);
+                setDraftId(null);
+            } catch (e) {
+                console.error('Failed to delete server draft', e);
+            }
         }
 
         // Reset State
