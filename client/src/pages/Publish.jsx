@@ -3,6 +3,7 @@ import ImageUpload from '../components/Post/ImageUpload';
 import Tiptap from '../components/Post/Tiptap';
 import usePublishLogic from '../hooks/usePublishLogic';
 import '../App.css';
+import '../styles/pages/Publish.css';
 
 export default function Publish() {
     const {
@@ -20,34 +21,16 @@ export default function Publish() {
     } = usePublishLogic();
 
     return (
-        <div
-            style={{
-                height: '100%',
-                display: 'flex',
-                flexDirection: 'column',
-                background: '#f5f5f5',
-                overflow: 'hidden',
-            }}
-        >
-            <div
-                style={{
-                    flexShrink: 0,
-                    background: '#fff',
-                    borderBottom: '1px solid #eee',
-                    position: 'sticky',
-                }}
-            >
+        <div className="publish-container">
+            <div className="publish-navbar-wrapper">
                 <NavBar
                     back={null}
                     left={
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <span
-                                style={{ fontSize: '14px', color: '#1677ff', cursor: 'pointer' }}
-                                onClick={handleClear}
-                            >
+                        <div className="publish-navbar-left">
+                            <span className="publish-clear-btn" onClick={handleClear}>
                                 {isEditMode ? '重置' : '清空'}
                             </span>
-                            <span style={{ fontSize: '12px', color: '#999' }}>| {statusText}</span>
+                            <span className="publish-status-text">| {statusText}</span>
                         </div>
                     }
                     right={
@@ -65,47 +48,21 @@ export default function Publish() {
                 </NavBar>
             </div>
 
-            <div
-                className="centerStyle"
-                style={{
-                    flex: 1,
-                    overflowY: 'auto',
-                    position: 'relative',
-                    WebkitOverflowScrolling: 'touch',
-                    background: '#fff',
-                }}
-            >
-                <div style={{ padding: '16px', flex: 1 }}>
-                    <div style={{ marginBottom: '20px', flex: 1 }}>
+            <div className="centerStyle publish-content-area">
+                <div className="publish-inner-content">
+                    <div className="publish-editor-wrapper">
                         <Tiptap value={content} onChange={(html) => setContent(html)} />
                         {/* Tags Display */}
                         {tags.length > 0 && (
-                            <div
-                                style={{
-                                    display: 'flex',
-                                    flexWrap: 'wrap',
-                                    gap: '8px',
-                                    marginTop: '12px',
-                                }}
-                            >
+                            <div className="publish-tags-wrapper">
                                 {tags.map((tag, index) => (
-                                    <span
-                                        key={index}
-                                        style={{
-                                            background: '#e6f7ff',
-                                            color: '#1890ff',
-                                            padding: '4px 12px',
-                                            borderRadius: '16px',
-                                            fontSize: '14px',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '4px',
-                                        }}
-                                    >
+                                    <span key={index} className="publish-tag-item">
                                         #{tag}
                                         <span
-                                            style={{ cursor: 'pointer', fontWeight: 'bold' }}
-                                            onClick={() => setTags((prev) => prev.filter((t) => t !== tag))}
+                                            className="publish-tag-close"
+                                            onClick={() =>
+                                                setTags((prev) => prev.filter((t) => t !== tag))
+                                            }
                                         >
                                             ×
                                         </span>

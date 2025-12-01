@@ -41,7 +41,7 @@ export default function useVerifyCode() {
 
     // trigger verify process
     const sendCode = (email, type) => {
-        pendingEmailRef.current = email; 
+        pendingEmailRef.current = email;
         typeRef.current = type;
         setCaptchaKey(Date.now()); // update key to reset captcha
         setCaptchaVisible(true); // show captcha modal

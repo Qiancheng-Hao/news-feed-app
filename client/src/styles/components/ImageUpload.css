@@ -1,0 +1,79 @@
+.image-upload-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.image-upload-item {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    aspect-ratio: 1/1;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #f5f5f5;
+}
+
+.image-upload-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.image-upload-delete-btn {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: rgba(0, 0, 0, 0.3);
+    width: 20px;
+    height: 20px;
+    border-bottom-left-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.image-upload-progress-wrapper {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0, 0, 0, 0.6);
+    padding: 4px 8px;
+}
+
+.image-upload-progress-bar {
+    --track-width: 4px;
+    --track-color: rgba(255, 255, 255, 0.3);
+}
+
+.image-upload-progress-text {
+    color: #fff;
+    font-size: 10px;
+    text-align: center;
+    margin-top: 2px;
+}
+
+.image-upload-add-btn {
+    aspect-ratio: 1/1;
+    background: #f5f5f5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    width: 100px;
+    height: 100px;
+    border: 2px dashed transparent;
+    border-radius: 12px;
+    padding: 8px;
+    transition: all 0.3s;
+}
+
+.image-upload-add-btn.is-dragging {
+    border: 2px dashed #1677ff;
+}
+
+.image-upload-input {
+    display: none;
+}

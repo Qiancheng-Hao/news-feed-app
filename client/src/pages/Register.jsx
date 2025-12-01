@@ -5,6 +5,7 @@ import request from '../utils/request';
 import useVerifyCode from '../hooks/useVerifyCode';
 import CaptchaModal from '../components/Captcha/CaptchaModal';
 import useEmailValidator from '../hooks/useEmailValidator';
+import '../styles/pages/Register.css';
 
 export default function Register() {
     const [form] = Form.useForm();
@@ -60,8 +61,8 @@ export default function Register() {
     };
 
     return (
-        <div style={{ padding: '20px', marginTop: '20px' }}>
-            <h1 style={{ textAlign: 'center', marginBottom: '30px' }}>用户注册</h1>
+        <div className="register-container">
+            <h1 className="register-title">用户注册</h1>
 
             <Card>
                 <Form
@@ -132,12 +133,9 @@ export default function Register() {
                     </Form.Item>
                 </Form>
 
-                <div style={{ textAlign: 'center', marginTop: '20px' }}>
-                    <span style={{ color: '#666' }}>已有账号？</span>
-                    <span
-                        style={{ color: '#1677ff', cursor: 'pointer' }}
-                        onClick={() => navigate('/login')}
-                    >
+                <div className="register-footer">
+                    <span className="register-footer-text">已有账号？</span>
+                    <span className="register-login-link" onClick={() => navigate('/login')}>
                         去登录
                     </span>
                 </div>

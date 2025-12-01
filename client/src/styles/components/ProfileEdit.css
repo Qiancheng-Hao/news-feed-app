@@ -1,0 +1,51 @@
+.profile-edit-card {
+    margin-bottom: 20px;
+    padding: 0;
+}
+
+.profile-edit-collapse-icon {
+    font-size: 20px;
+    color: #999;
+}
+
+.profile-edit-header {
+    display: flex;
+    align-items: center;
+}
+
+.profile-edit-avatar {
+    --size: 64px;
+    margin-right: 16px;
+}
+
+.profile-edit-username {
+    margin: 0;
+}
+
+.profile-edit-email {
+    color: #666;
+    margin: 5px 0 0;
+}
+
+.profile-popup-body {
+    width: 100vw;
+    background-color: #f5f5f5;
+}
+
+.profile-popup-content {
+    padding: 20px;
+}
+
+.profile-avatar-upload-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.profile-form-button-wrapper {
+    margin-top: 20px;
+}
+
+.profile-email-text {
+    color: #666;
+}

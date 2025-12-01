@@ -11,7 +11,6 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 // app.use(cors()); // Enable CORS
 
-
 app.use(
     cors({
         origin: [
@@ -21,6 +20,7 @@ app.use(
             'https://www.newsfeedapp.me',
         ],
         exposedHeaders: ['x-new-token'], // Allow frontend to access this header
+        maxAge: 3600,
         // credentials: true, // Cookie
     })
 );

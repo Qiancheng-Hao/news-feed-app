@@ -3,6 +3,7 @@ import { Toast, ProgressBar } from 'antd-mobile';
 import { CloseOutline, AddOutline } from 'antd-mobile-icons';
 import request from '../../utils/request';
 import axios from 'axios';
+import '../../styles/components/ImageUpload.css';
 
 // convert File to Base64 data URL
 const fileToDataURL = (file) => {
@@ -170,83 +171,26 @@ export default function ImageUpload({ fileList, setFileList, maxCount = 9 }) {
     };
 
     return (
-        <div
-            style={{
-                display: 'flex',
-                flexWrap: 'wrap',
-                gap: '8px',
-            }}
-        >
+        <div className="image-upload-container">
             {/* files already uploaded */}
             {fileList.map((item) => (
-                <div
-                    key={item.id}
-                    style={{
-                        position: 'relative',
-                        width: '100px',
-                        height: '100px',
-                        aspectRatio: '1/1',
-                        borderRadius: '8px',
-                        overflow: 'hidden',
-                        background: '#f5f5f5',
-                    }}
-                >
+                <div key={item.id} className="image-upload-item">
                     {/* image */}
-                    <img
-                        src={getImageUrl(item)}
-                        alt="upload"
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                    />
+                    <img src={getImageUrl(item)} alt="upload" className="image-upload-img" />
 
                     {/* delete button */}
-                    <div
-                        onClick={() => handleDelete(item)}
-                        style={{
-                            position: 'absolute',
-                            top: 0,
-                            right: 0,
-                            background: 'rgba(0,0,0,0.3)',
-                            width: '20px',
-                            height: '20px',
-                            borderBottomLeftRadius: '8px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            cursor: 'pointer',
-                        }}
-                    >
+                    <div onClick={() => handleDelete(item)} className="image-upload-delete-btn">
                         <CloseOutline color="#fff" fontSize={12} />
                     </div>
 
                     {/* progress bar */}
                     {item.status === 'uploading' && (
-                        <div
-                            style={{
-                                position: 'absolute',
-                                bottom: 0,
-                                left: 0,
-                                right: 0,
-                                background: 'rgba(0,0,0,0.6)',
-                                padding: '4px 8px',
-                            }}
-                        >
+                        <div className="image-upload-progress-wrapper">
                             <ProgressBar
                                 percent={item.percent}
-                                style={{
-                                    '--track-width': '4px',
-                                    '--track-color': 'rgba(255,255,255,0.3)',
-                                }}
+                                className="image-upload-progress-bar"
                             />
-                            <div
-                                style={{
-                                    color: '#fff',
-                                    fontSize: '10px',
-                                    textAlign: 'center',
-                                    marginTop: 2,
-                                }}
-                            >
-                                {item.percent}%
-                            </div>
+                            <div className="image-upload-progress-text">{item.percent}%</div>
                         </div>
                     )}
                 </div>
@@ -259,20 +203,7 @@ export default function ImageUpload({ fileList, setFileList, maxCount = 9 }) {
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
                     onClick={() => fileInputRef.current.click()}
-                    style={{
-                        aspectRatio: '1/1',
-                        background: '#f5f5f5',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        cursor: 'pointer',
-                        width: '100px',
-                        height: '100px',
-                        border: isDragging ? '2px dashed #1677ff' : '2px dashed transparent',
-                        borderRadius: '12px',
-                        padding: '8px',
-                        transition: 'all 0.3s',
-                    }}
+                    className={`image-upload-add-btn ${isDragging ? 'is-dragging' : ''}`}
                 >
                     <AddOutline fontSize={32} color="#999" />
                 </div>
@@ -284,7 +215,7 @@ export default function ImageUpload({ fileList, setFileList, maxCount = 9 }) {
                 accept="image/*"
                 multiple
                 ref={fileInputRef}
-                style={{ display: 'none' }}
+                className="image-upload-input"
                 onChange={handleFileChange}
             />
         </div>

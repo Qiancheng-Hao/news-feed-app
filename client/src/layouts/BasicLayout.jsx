@@ -3,6 +3,7 @@ import { TabBar } from 'antd-mobile';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { AppOutline, AddCircleOutline, UserOutline } from 'antd-mobile-icons';
 import useUserStore from '../stores/useUserStore';
+import '../styles/layouts/BasicLayout.css';
 
 export default function BasicLayout() {
     const navigate = useNavigate();
@@ -45,21 +46,14 @@ export default function BasicLayout() {
     ];
 
     return (
-        <div
-            style={{
-                height: '100dvh',
-                display: 'flex',
-                flexDirection: 'column',
-                overflow: 'hidden',
-            }}
-        >
+        <div className="basic-layout-container">
             {/* 内容区域 渲染子路由组件 */}
-            <div style={{ flex: 1, overflow: 'hidden', background: '#f5f5f5' }}>
+            <div className="basic-layout-content">
                 <Outlet />
             </div>
 
             {/* 底部导航 */}
-            <div style={{ borderTop: '1px solid #eee', background: '#fff' }}>
+            <div className="basic-layout-tabbar">
                 <TabBar activeKey={activeKey} onChange={(key) => navigate(key)}>
                     {tabs.map((item) => (
                         <TabBar.Item key={item.key} icon={item.icon} title={item.title} />

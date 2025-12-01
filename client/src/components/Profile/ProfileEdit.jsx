@@ -16,6 +16,7 @@ import useVerifyCode from '../../hooks/useVerifyCode';
 import CaptchaModal from '../Captcha/CaptchaModal';
 import { IconLock, IconUser, IconImage, IconDoubleDown } from '@arco-design/web-react/icon';
 import '@arco-design/web-react/dist/css/arco.css';
+import '../../styles/components/ProfileEdit.css';
 
 export default function ProfileEdit({ user, updateUserInfo }) {
     // 'avatar' | 'name' | 'password' | null
@@ -137,19 +138,19 @@ export default function ProfileEdit({ user, updateUserInfo }) {
     return (
         <>
             {/* Settings List */}
-            <Card style={{ marginBottom: 20, padding: 0 }}>
-                <Collapse arrow={<IconDoubleDown style={{ fontSize: 20, color: '#999' }} />}>
+            <Card className="profile-edit-card">
+                <Collapse arrow={<IconDoubleDown className="profile-edit-collapse-icon" />}>
                     <Collapse.Panel
                         key="settings"
                         title={
-                            <div style={{ display: 'flex', alignItems: 'center' }}>
+                            <div className="profile-edit-header">
                                 <Avatar
                                     src={`${user.avatar.includes('.volces.com') ? `${user.avatar}?x-tos-process=image/resize,w_100` : user.avatar}`}
-                                    style={{ '--size': '64px', marginRight: 16 }}
+                                    className="profile-edit-avatar"
                                 />
                                 <div>
-                                    <h2 style={{ margin: 0 }}>{user.username}</h2>
-                                    <p style={{ color: '#666', margin: '5px 0 0' }}>{user.email}</p>
+                                    <h2 className="profile-edit-username">{user.username}</h2>
+                                    <p className="profile-edit-email">{user.email}</p>
                                 </div>
                             </div>
                         }
@@ -174,16 +175,14 @@ export default function ProfileEdit({ user, updateUserInfo }) {
                 visible={activePopup === 'avatar'}
                 onMaskClick={() => setActivePopup(null)}
                 position="right"
-                bodyStyle={{ width: '100vw', backgroundColor: '#f5f5f5' }}
+                bodyClassName="profile-popup-body"
             >
                 <NavBar onBack={() => setActivePopup(null)} back="返回">
                     修改头像
                 </NavBar>
-                <div style={{ padding: 20 }}>
+                <div className="profile-popup-content">
                     <Card>
-                        <div
-                            style={{ display: 'flex', justifyContent: 'center', marginBottom: 20 }}
-                        >
+                        <div className="profile-avatar-upload-wrapper">
                             <ImageUpload
                                 fileList={fileList}
                                 setFileList={setFileList}
@@ -207,12 +206,12 @@ export default function ProfileEdit({ user, updateUserInfo }) {
                 visible={activePopup === 'name'}
                 onMaskClick={() => setActivePopup(null)}
                 position="right"
-                bodyStyle={{ width: '100vw', backgroundColor: '#f5f5f5' }}
+                bodyClassName="profile-popup-body"
             >
                 <NavBar onBack={() => setActivePopup(null)} back="返回">
                     修改用户名
                 </NavBar>
-                <div style={{ padding: 20 }}>
+                <div className="profile-popup-content">
                     <Card>
                         <Form form={nameForm} layout="horizontal">
                             <Form.Item
@@ -223,7 +222,7 @@ export default function ProfileEdit({ user, updateUserInfo }) {
                                 <Input placeholder="请输入新的用户名" />
                             </Form.Item>
                         </Form>
-                        <div style={{ marginTop: 20 }}>
+                        <div className="profile-form-button-wrapper">
                             <Button
                                 block
                                 color="primary"
@@ -243,16 +242,16 @@ export default function ProfileEdit({ user, updateUserInfo }) {
                 visible={activePopup === 'password'}
                 onMaskClick={() => setActivePopup(null)}
                 position="right"
-                bodyStyle={{ width: '100vw', backgroundColor: '#f5f5f5' }}
+                bodyClassName="profile-popup-body"
             >
                 <NavBar onBack={() => setActivePopup(null)} back="返回">
                     重设密码
                 </NavBar>
-                <div style={{ padding: 20 }}>
+                <div className="profile-popup-content">
                     <Card>
                         <Form form={passwordForm} layout="horizontal">
                             <Form.Item label="邮箱">
-                                <span style={{ color: '#666' }}>{user.email}</span>
+                                <span className="profile-email-text">{user.email}</span>
                             </Form.Item>
 
                             <Form.Item
@@ -302,7 +301,7 @@ export default function ProfileEdit({ user, updateUserInfo }) {
                             </Form.Item>
                         </Form>
 
-                        <div style={{ marginTop: 20 }}>
+                        <div className="profile-form-button-wrapper">
                             <Button
                                 block
                                 color="primary"

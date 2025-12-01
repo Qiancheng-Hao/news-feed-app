@@ -1,0 +1,31 @@
+.login-container {
+    padding: 20px;
+    margin-top: 50px;
+}
+
+.login-title {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.login-tabs {
+    --content-padding: 0;
+}
+
+.login-form-content {
+    margin-top: 24px;
+}
+
+.login-footer {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.login-footer-text {
+    color: #666;
+}
+
+.login-register-link {
+    color: #1677ff;
+    cursor: pointer;
+}

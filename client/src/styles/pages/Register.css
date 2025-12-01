@@ -1,0 +1,23 @@
+.register-container {
+    padding: 20px;
+    margin-top: 20px;
+}
+
+.register-title {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.register-footer {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.register-footer-text {
+    color: #666;
+}
+
+.register-login-link {
+    color: #1677ff;
+    cursor: pointer;
+}

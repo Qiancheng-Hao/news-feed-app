@@ -35,7 +35,7 @@ import '@arco-design/web-react/dist/css/arco.css';
 import { Extension } from '@tiptap/core';
 import { liftTarget } from '@tiptap/pm/transform';
 import { findWrapping } from '@tiptap/pm/transform';
-import './TipTap.css';
+import '../../styles/components/TipTap.css';
 
 // Initialize lowlight with common languages (js, css, html, python, etc.)
 const lowlight = createLowlight(common);

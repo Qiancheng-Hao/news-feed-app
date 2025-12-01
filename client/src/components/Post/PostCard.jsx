@@ -5,7 +5,8 @@ import useUserStore from '../../stores/useUserStore';
 import usePostStore from '../../stores/usePostStore';
 import request from '../../utils/request';
 import { useNavigate } from 'react-router-dom';
-import './TipTap.css';
+import '../../styles/components/TipTap.css';
+import '../../styles/components/PostCard.css';
 
 // function to get thumbnail URL
 const getThumbnailUrl = (url) => {
@@ -86,12 +87,7 @@ export default function PostCard({ post, priority = false }) {
             const singleImg = post.images[0];
             return (
                 <div
-                    style={{
-                        borderRadius: '8px',
-                        overflow: 'hidden',
-                        display: 'inline-block',
-                        cursor: 'pointer',
-                    }}
+                    className="single-image-wrapper"
                     onClick={() => {
                         setImageIndex(0);
                         setVisible(true);
@@ -101,18 +97,7 @@ export default function PostCard({ post, priority = false }) {
                         src={getThumbnailUrl(singleImg)}
                         loading={priority ? 'eager' : 'lazy'}
                         alt="post"
-                        style={{
-                            display: 'block',
-                            maxWidth: '80%',
-                            minWidth: '30%',
-
-                            maxHeight: '350px',
-
-                            width: 'auto',
-                            height: 'auto',
-
-                            objectFit: 'cover',
-                        }}
+                        className="single-image"
                     />
                 </div>
             );
@@ -126,17 +111,13 @@ export default function PostCard({ post, priority = false }) {
 
         return (
             <div
+                className="image-grid"
                 style={{
-                    display: 'grid',
                     gridTemplateColumns: gridColumns,
-                    gap: '8px',
                 }}
             >
                 {post.images.map((img, index) => (
-                    <div
-                        key={index}
-                        style={{ aspectRatio: '1 / 1', overflow: 'hidden', borderRadius: '4px' }}
-                    >
+                    <div key={index} className="image-grid-item">
                         <Image
                             src={getThumbnailUrl(img)}
                             lazy={!priority}
@@ -155,51 +136,23 @@ export default function PostCard({ post, priority = false }) {
     };
 
     return (
-        <Card
-            style={{
-                marginBottom: '12px',
-                borderRadius: 0,
-                border: 'none',
-                padding: '16px',
-            }}
-        >
+        <Card className="post-card">
             {/* user info */}
-            <div
-                style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    marginBottom: '12px',
-                    minHeight: '40px',
-                }}
-            >
-                <div style={{ flexShrink: 0, width: '40px', height: '40px', marginRight: '12px' }}>
+            <div className="post-header">
+                <div className="post-avatar-wrapper">
                     <Avatar
                         src={`${post.User?.avatar.includes('.volces.com') ? `${post.User?.avatar}?x-tos-process=image/resize,w_300` : post.User?.avatar}`}
-                        style={{
-                            '--size': '40px',
-                            width: '40px',
-                            height: '40px',
-                        }}
+                        className="post-avatar"
                     />
                 </div>
                 <div>
-                    <div style={{ fontWeight: 'bold', fontSize: '16px' }}>
-                        {post.User?.username || '未知用户'}
-                    </div>
+                    <div className="post-username">{post.User?.username || '未知用户'}</div>
                 </div>
             </div>
 
             {/* content */}
             <div
-                className="tiptap rich-text-content"
-                style={{
-                    fontSize: '15px',
-                    marginBottom: '12px',
-                    whiteSpace: 'pre-wrap',
-                    minHeight: '20px',
-                    lineHeight: '1.5',
-                    padding: 0,
-                }}
+                className="tiptap rich-text-content post-content"
                 dangerouslySetInnerHTML={{ __html: post.content }}
             />
 
@@ -217,19 +170,12 @@ export default function PostCard({ post, priority = false }) {
 
             {/* Tags */}
             {post.tags && post.tags.length > 0 && (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '8px' }}>
+                <div className="tags-wrapper">
                     {post.tags.map((tag, index) => (
                         <span
                             key={index}
                             onClick={() => navigate('/publish', { state: { topic: tag } })}
-                            style={{
-                                background: '#f0f2f5',
-                                color: '#1677ff',
-                                padding: '2px 8px',
-                                borderRadius: '4px',
-                                fontSize: '12px',
-                                cursor: 'pointer',
-                            }}
+                            className="tag-item"
                         >
                             #{tag}
                         </span>
@@ -238,16 +184,7 @@ export default function PostCard({ post, priority = false }) {
             )}
 
             {/* Footer with time and actions */}
-            <div
-                style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    marginTop: '12px',
-                    color: '#999',
-                    fontSize: '12px',
-                }}
-            >
+            <div className="post-footer">
                 <div>
                     {/* {post.updated_at &&
                     new Date(post.updated_at) >
@@ -265,17 +202,11 @@ export default function PostCard({ post, priority = false }) {
                         content={
                             isConfirmingDelete ? (
                                 // Confirmation view
-                                <div style={{ display: 'flex', alignItems: 'center' }}>
+                                <div className="popover-actions">
                                     <Button size="small" fill="none" onClick={handleCancelDelete}>
                                         返回
                                     </Button>
-                                    <div
-                                        style={{
-                                            height: '14px',
-                                            borderLeft: '1px solid var(--adm-color-border)',
-                                            margin: '0 4px',
-                                        }}
-                                    ></div>
+                                    <div className="action-divider"></div>
                                     <Button
                                         size="small"
                                         fill="none"
@@ -287,17 +218,11 @@ export default function PostCard({ post, priority = false }) {
                                 </div>
                             ) : (
                                 // Initial view
-                                <div style={{ display: 'flex', alignItems: 'center' }}>
+                                <div className="popover-actions">
                                     <Button size="small" fill="none" onClick={handleEdit}>
                                         <EditSOutline />
                                     </Button>
-                                    <div
-                                        style={{
-                                            height: '14px',
-                                            borderLeft: '1px solid var(--adm-color-border)',
-                                            margin: '0 4px',
-                                        }}
-                                    ></div>
+                                    <div className="action-divider"></div>
                                     <Button
                                         size="small"
                                         fill="none"
@@ -311,7 +236,7 @@ export default function PostCard({ post, priority = false }) {
                         }
                         trigger="click"
                     >
-                        <div style={{ padding: '0 8px', color: '#999' }}>
+                        <div className="more-icon-wrapper">
                             <MoreOutline fontSize={20} />
                         </div>
                     </Popover>

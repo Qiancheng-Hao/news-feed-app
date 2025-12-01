@@ -1,12 +1,12 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import './SliderCaptcha.css';
+import '../../styles/components/SliderCaptcha.css';
 
 export default function SliderCaptcha({ onSuccess, onFail }) {
     const [isMoving, setIsMoving] = useState(false);
     const [x, setX] = useState(0);
     const [isSuccess, setIsSuccess] = useState(false);
-    const sliderRef = useRef(null);  // slider ref
-    const bgRef = useRef(null);     // background ref
+    const sliderRef = useRef(null); // slider ref
+    const bgRef = useRef(null); // background ref
 
     const handleMouseDown = () => {
         if (isSuccess) return;
@@ -18,12 +18,12 @@ export default function SliderCaptcha({ onSuccess, onFail }) {
         (e) => {
             if (!isMoving || isSuccess) return;
 
-            const bgWidth = bgRef.current.clientWidth;          // background width 
-            const sliderWidth = sliderRef.current.clientWidth;  // slider width
-            const maxMove = bgWidth - sliderWidth;              // max move distance
+            const bgWidth = bgRef.current.clientWidth; // background width
+            const sliderWidth = sliderRef.current.clientWidth; // slider width
+            const maxMove = bgWidth - sliderWidth; // max move distance
 
             let moveX = e.clientX || e.touches[0].clientX;
-            const rect = bgRef.current.getBoundingClientRect();  // background bounding rect
+            const rect = bgRef.current.getBoundingClientRect(); // background bounding rect
             let offset = moveX - rect.left - sliderWidth / 2;
 
             if (offset < 0) offset = 0;

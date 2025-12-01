@@ -3,6 +3,7 @@ import { Button, Card, Avatar, Toast, Dialog } from 'antd-mobile';
 import { useNavigate } from 'react-router-dom';
 import useUserStore from '../stores/useUserStore';
 import ProfileEdit from '../components/Profile/ProfileEdit';
+import '../styles/pages/Profile.css';
 
 export default function Profile() {
     const navigate = useNavigate();
@@ -28,7 +29,7 @@ export default function Profile() {
     if (!user) return <div>Loading...</div>;
 
     return (
-        <div style={{ padding: 20 }}>
+        <div className="profile-container">
             <ProfileEdit user={user} updateUserInfo={updateUserInfo} />
 
             <Button block color="danger" onClick={handleLogout}>

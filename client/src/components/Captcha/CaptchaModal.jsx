@@ -1,41 +1,17 @@
 import { CenterPopup } from 'antd-mobile';
 import SliderCaptcha from './SliderCaptcha';
+import '../../styles/components/CaptchaModal.css';
 
 export default function CaptchaModal({ visible, onClose, onSuccess, captchaKey }) {
     return (
-        <CenterPopup visible={visible} onMaskClick={onClose} style={{ '--z-index': '9999' }}>
-            <div
-                style={{
-                    backgroundColor: '#fff',
-                    borderRadius: '16px',
-                    padding: '24px',
-                    width: '300px',
-                }}
-            >
-                <div
-                    style={{
-                        marginBottom: '24px',
-                        textAlign: 'center',
-                        fontWeight: 'bold',
-                        fontSize: '18px',
-                    }}
-                >
-                    安全验证
-                </div>
+        <CenterPopup visible={visible} onMaskClick={onClose} className="captcha-modal-popup">
+            <div className="captcha-modal-content">
+                <div className="captcha-modal-title">安全验证</div>
 
                 {/* Slide Captcha */}
                 <SliderCaptcha key={captchaKey} onSuccess={onSuccess} />
                 {/* close button */}
-                <div
-                    style={{
-                        marginTop: '20px',
-                        textAlign: 'center',
-                        color: '#999',
-                        fontSize: '14px',
-                        cursor: 'pointer',
-                    }}
-                    onClick={onClose}
-                >
+                <div className="captcha-modal-close" onClick={onClose}>
                     关闭
                 </div>
             </div>

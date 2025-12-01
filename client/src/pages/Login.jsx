@@ -5,6 +5,7 @@ import request from '../utils/request';
 import useUserStore from '../stores/useUserStore';
 import PasswordLoginForm from '../components/Login/PasswordLoginForm';
 import EmailCodeLoginForm from '../components/Login/EmailCodeLoginForm';
+import '../styles/pages/Login.css';
 
 export default function Login() {
     const navigate = useNavigate();
@@ -32,21 +33,21 @@ export default function Login() {
     };
 
     return (
-        <div style={{ padding: '20px', marginTop: '50px' }}>
-            <h1 style={{ textAlign: 'center', marginBottom: '40px' }}>欢迎回来</h1>
+        <div className="login-container">
+            <h1 className="login-title">欢迎回来</h1>
 
             <Card>
                 <Tabs
                     activeKey={loginType}
                     onChange={(key) => setLoginType(key)}
-                    style={{ '--content-padding': '0' }}
+                    className="login-tabs"
                 >
                     <Tabs.Tab title="账号密码登录" key="password" />
                     <Tabs.Tab title="邮箱验证码登录" key="email" />
                 </Tabs>
 
                 {/* 2 different login types */}
-                <div className="form-content" style={{ marginTop: '24px' }}>
+                <div className="login-form-content">
                     {loginType === 'password' ? (
                         <PasswordLoginForm loading={loading} onFinish={onFinish} />
                     ) : (
@@ -54,12 +55,9 @@ export default function Login() {
                     )}
                 </div>
 
-                <div style={{ textAlign: 'center', marginTop: '20px' }}>
-                    <span style={{ color: '#666' }}>还没有账号？</span>
-                    <span
-                        style={{ color: '#1677ff', cursor: 'pointer' }}
-                        onClick={() => navigate('/register')}
-                    >
+                <div className="login-footer">
+                    <span className="login-footer-text">还没有账号？</span>
+                    <span className="login-register-link" onClick={() => navigate('/register')}>
                         去注册
                     </span>
                 </div>
