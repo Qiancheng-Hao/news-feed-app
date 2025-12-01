@@ -16,7 +16,7 @@ const getThumbnailUrl = (url) => {
     return `${url}?x-tos-process=image/resize,w_300`;
 };
 
-export default function PostCard({ post, priority = false }) {
+export default function PostCard({ post, priority = false, clickable = false }) {
     const [visible, setVisible] = useState(false);
     const [imageIndex, setImageIndex] = useState(0);
     const [popoverVisible, setPopoverVisible] = useState(false);
@@ -27,6 +27,12 @@ export default function PostCard({ post, priority = false }) {
     const { removePost } = usePostStore(); // Get removePost function from the store
 
     const isAuthor = user?.id === post.User?.id;
+
+    const handleCardClick = () => {
+        if (clickable) {
+            navigate(`/posts/${post.id}`, { state: { post } });
+        }
+    };
 
     const handlePopoverVisibleChange = (visible) => {
         setPopoverVisible(visible);
@@ -88,7 +94,8 @@ export default function PostCard({ post, priority = false }) {
             return (
                 <div
                     className="single-image-wrapper"
-                    onClick={() => {
+                    onClick={(e) => {
+                        e.stopPropagation();
                         setImageIndex(0);
                         setVisible(true);
                     }}
@@ -124,7 +131,8 @@ export default function PostCard({ post, priority = false }) {
                             fit="cover"
                             width="100%"
                             height="100%"
-                            onClick={() => {
+                            onClick={(e) => {
+                                e.stopPropagation();
                                 setImageIndex(index);
                                 setVisible(true);
                             }}
@@ -136,7 +144,7 @@ export default function PostCard({ post, priority = false }) {
     };
 
     return (
-        <Card className="post-card">
+        <Card className="post-card" onClick={clickable ? handleCardClick : undefined}>
             {/* user info */}
             <div className="post-header">
                 <div className="post-avatar-wrapper">
@@ -174,7 +182,10 @@ export default function PostCard({ post, priority = false }) {
                     {post.tags.map((tag, index) => (
                         <span
                             key={index}
-                            onClick={() => navigate('/publish', { state: { topic: tag } })}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                navigate('/publish', { state: { topic: tag } });
+                            }}
                             className="tag-item"
                         >
                             #{tag}
@@ -195,51 +206,53 @@ export default function PostCard({ post, priority = false }) {
                 </div>
 
                 {isAuthor && (
-                    <Popover
-                        placement="left"
-                        visible={popoverVisible}
-                        onVisibleChange={handlePopoverVisibleChange}
-                        content={
-                            isConfirmingDelete ? (
-                                // Confirmation view
-                                <div className="popover-actions">
-                                    <Button size="small" fill="none" onClick={handleCancelDelete}>
-                                        返回
-                                    </Button>
-                                    <div className="action-divider"></div>
-                                    <Button
-                                        size="small"
-                                        fill="none"
-                                        color="danger"
-                                        onClick={executeDelete}
-                                    >
-                                        删除
-                                    </Button>
-                                </div>
-                            ) : (
-                                // Initial view
-                                <div className="popover-actions">
-                                    <Button size="small" fill="none" onClick={handleEdit}>
-                                        <EditSOutline />
-                                    </Button>
-                                    <div className="action-divider"></div>
-                                    <Button
-                                        size="small"
-                                        fill="none"
-                                        color="danger"
-                                        onClick={handleDeleteClick}
-                                    >
-                                        <DeleteOutline />
-                                    </Button>
-                                </div>
-                            )
-                        }
-                        trigger="click"
-                    >
-                        <div className="more-icon-wrapper">
-                            <MoreOutline fontSize={20} />
-                        </div>
-                    </Popover>
+                    <div onClick={(e) => e.stopPropagation()}>
+                        <Popover
+                            placement="left"
+                            visible={popoverVisible}
+                            onVisibleChange={handlePopoverVisibleChange}
+                            content={
+                                isConfirmingDelete ? (
+                                    // Confirmation view
+                                    <div className="popover-actions">
+                                        <Button size="small" fill="none" onClick={handleCancelDelete}>
+                                            返回
+                                        </Button>
+                                        <div className="action-divider"></div>
+                                        <Button
+                                            size="small"
+                                            fill="none"
+                                            color="danger"
+                                            onClick={executeDelete}
+                                        >
+                                            删除
+                                        </Button>
+                                    </div>
+                                ) : (
+                                    // Initial view
+                                    <div className="popover-actions">
+                                        <Button size="small" fill="none" onClick={handleEdit}>
+                                            <EditSOutline />
+                                        </Button>
+                                        <div className="action-divider"></div>
+                                        <Button
+                                            size="small"
+                                            fill="none"
+                                            color="danger"
+                                            onClick={handleDeleteClick}
+                                        >
+                                            <DeleteOutline />
+                                        </Button>
+                                    </div>
+                                )
+                            }
+                            trigger="click"
+                        >
+                            <div className="more-icon-wrapper">
+                                <MoreOutline fontSize={20} />
+                            </div>
+                        </Popover>
+                    </div>
                 )}
             </div>
         </Card>

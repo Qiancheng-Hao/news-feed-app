@@ -9,6 +9,7 @@ const Publish = lazy(() => import('./pages/Publish'));
 const Profile = lazy(() => import('./pages/Profile'));
 const Login = lazy(() => import('./pages/Login'));
 const Register = lazy(() => import('./pages/Register'));
+const PostDetail = lazy(() => import('./pages/PostDetail'));
 
 const PageLoading = () => (
     <div style={{ padding: 20, textAlign: 'center' }}>
@@ -22,6 +23,7 @@ function App() {
             <Routes>
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
+                <Route path="/posts/:id" element={<PostDetail />} />
 
                 <Route path="/" element={<BasicLayout />}>
                     <Route index element={<Home />} />

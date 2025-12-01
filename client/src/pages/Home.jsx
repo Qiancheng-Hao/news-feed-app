@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef, useLayoutEffect } from 'react';
 import { NavBar, PullToRefresh, ErrorBlock, DotLoading, InfiniteScroll } from 'antd-mobile';
 import { Skeleton } from 'antd-mobile';
 import PostCard from '../components/Post/PostCard';
@@ -23,7 +23,43 @@ const PostSkeleton = () => (
 );
 
 export default function Home() {
-    const { posts, isLoading, fetchPosts, hasMore } = usePostStore();
+    const { posts, isLoading, fetchPosts, hasMore, scrollPosition, setScrollPosition } = usePostStore();
+    const scrollRef = useRef(null);
+    const scrollTopRef = useRef(scrollPosition);
+
+    const handleScroll = (e) => {
+        scrollTopRef.current = e.target.scrollTop;
+    };
+
+    useLayoutEffect(() => {
+        const el = scrollRef.current;
+        if (el && scrollPosition > 0) {
+            // Restore scroll position
+            el.scrollTop = scrollPosition;
+            scrollTopRef.current = scrollPosition;
+            
+            // Retry in case of layout shifts
+            const attemptRestore = () => {
+                if (el.scrollHeight >= scrollPosition + el.clientHeight) {
+                    el.scrollTop = scrollPosition;
+                }
+            };
+
+            const timers = [
+                setTimeout(attemptRestore, 50),
+                setTimeout(attemptRestore, 150),
+                setTimeout(attemptRestore, 300)
+            ];
+            
+            return () => timers.forEach(clearTimeout);
+        }
+    }, [scrollPosition]);
+
+    useEffect(() => {
+        return () => {
+            setScrollPosition(scrollTopRef.current);
+        };
+    }, [setScrollPosition]);
 
     useEffect(() => {
         if (posts.length === 0) {
@@ -52,7 +88,7 @@ export default function Home() {
             </div>
 
             {/* PullToRefresh */}
-            <div className="home-content-area">
+            <div className="home-content-area" ref={scrollRef} onScroll={handleScroll}>
                 <PullToRefresh onRefresh={handleRefresh}>
                     {/* Scroll area container */}
                     <div className="centerStyle home-scroll-container">
@@ -71,10 +107,10 @@ export default function Home() {
                                 description="快去发布第一条动态吧！"
                             />
                         ) : (
-                            <div className="centerStyle">
+                            <div>
                                 {posts.map((post, index) => (
                                     <div key={post.id} className="post-item-wrapper">
-                                        <PostCard post={post} priority={index < 4} />
+                                        <PostCard post={post} priority={index < 4} clickable={true} />
                                     </div>
                                 ))}
 

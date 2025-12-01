@@ -8,6 +8,9 @@ const usePostStore = create((set, get) => ({
     isLoading: false,
     page: 1, // next page to fetch
     hasMore: true, // more posts to load
+    scrollPosition: 0, // save scroll position
+
+    setScrollPosition: (position) => set({ scrollPosition: position }),
 
     // fetch posts
     fetchPosts: async (forceRefresh = false) => {

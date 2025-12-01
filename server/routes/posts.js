@@ -119,7 +119,7 @@ router.get('/draft', authenticateToken, async (req, res) => {
     }
 });
 
-// Get a single post by ID (GET /api/posts/:id)
+// Get post by ID and posts with same tags (GET /api/posts/:id)
 router.get('/:id', async (req, res) => {
     try {
         const post = await Post.findByPk(req.params.id, {
@@ -135,7 +135,40 @@ router.get('/:id', async (req, res) => {
             return res.status(404).json({ message: '帖子不存在' });
         }
 
-        res.json(post);
+        // Find related posts based on tags
+        let relatedPosts = [];
+        let suggestedTags = [];
+
+        if (post.tags && post.tags.length > 0) {
+            const tagConditions = post.tags.map((tag) =>
+                sequelize.literal(`JSON_CONTAINS(tags, '"${tag}"')`)
+            );
+
+            relatedPosts = await Post.findAll({
+                where: {
+                    id: { [Op.ne]: post.id }, // Exclude current post
+                    status: 'published',
+                    [Op.or]: tagConditions,
+                },
+                include: [
+                    {
+                        model: User,
+                        attributes: ['id', 'username', 'avatar'],
+                    },
+                ],
+                limit: 10,
+                order: [['created_at', 'DESC']],
+            });
+
+            // Extract tags from related posts to form suggested topics
+            const allTags = relatedPosts.flatMap((p) => p.tags || []);
+            const originalTags = post.tags || [];
+
+            // Merge and deduplicate
+            suggestedTags = [...new Set([...originalTags, ...allTags])].slice(0, 10);
+        }
+
+        res.json({ ...post.toJSON(), relatedPosts, suggestedTags });
     } catch (error) {
         console.error('获取详情失败:', error);
         res.status(500).json({ message: '服务器错误' });
