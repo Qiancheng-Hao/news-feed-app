@@ -82,6 +82,11 @@ const Post = sequelize.define(
         createdAt: 'created_at',
         updatedAt: 'updated_at',
         tableName: 'posts',
+        indexes: [
+            {
+                fields: ['status', 'created_at'],
+            },
+        ],
     }
 );
 

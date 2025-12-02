@@ -29,12 +29,32 @@ const usePostStore = create((set, get) => ({
         const currentPage = forceRefresh ? 1 : page;
 
         try {
-            const res = await request.get('/posts', {
-                params: {
-                    page: currentPage,
-                    pageSize: pageSize,
-                },
-            });
+            let res;
+            // Check for preloaded data on first load
+            if (forceRefresh && window.initialPostsPromise) {
+                try {
+                    res = await window.initialPostsPromise;
+                    window.initialPostsPromise = null;
+                } catch (e) {
+                    console.warn('Preload failed, falling back to request', e);
+                    window.initialPostsPromise = null;
+                    // Normal request
+                    res = await request.get('/posts', {
+                        params: {
+                            page: currentPage,
+                            pageSize: pageSize,
+                        },
+                    });
+                }
+            } else {
+                // Normal request
+                res = await request.get('/posts', {
+                    params: {
+                        page: currentPage,
+                        pageSize: pageSize,
+                    },
+                });
+            }
 
             const noMoreData = res.length < pageSize;
 

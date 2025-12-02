@@ -5,6 +5,10 @@ import App from './App.jsx';
 import './index.css';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 import { Analytics } from '@vercel/analytics/react';
+import usePostStore from './stores/usePostStore';
+
+// Start fetching posts immediately
+usePostStore.getState().fetchPosts(true);
 
 ReactDOM.createRoot(document.getElementById('root')).render(
     // <React.StrictMode>

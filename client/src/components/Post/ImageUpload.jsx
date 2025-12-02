@@ -3,6 +3,7 @@ import { Toast, ProgressBar } from 'antd-mobile';
 import { CloseOutline, AddOutline } from 'antd-mobile-icons';
 import request from '../../utils/request';
 import axios from 'axios';
+import { getThumbnailUrl } from '../../utils/image';
 import '../../styles/components/ImageUpload.css';
 
 // convert File to Base64 data URL
@@ -109,7 +110,7 @@ export default function ImageUpload({ fileList, setFileList, maxCount = 9 }) {
 
     // handle delete
     const handleDelete = (targetItem) => {
-        // 🔥 If still uploading, abort the upload
+        // If still uploading, abort the upload
         if (targetItem.status === 'uploading' && uploadControllersRef.current.has(targetItem.id)) {
             uploadControllersRef.current.get(targetItem.id).abort();
             uploadControllersRef.current.delete(targetItem.id);
@@ -163,11 +164,7 @@ export default function ImageUpload({ fileList, setFileList, maxCount = 9 }) {
         if (item.status === 'uploading') {
             return item.url;
         }
-        // Safety check: ensure serverUrl exists before calling .includes
-        if (item.serverUrl?.includes('.volces.com')) {
-            return `${item.serverUrl}?x-tos-process=image/resize,w_300`;
-        }
-        return item.serverUrl;
+        return getThumbnailUrl(item.serverUrl);
     };
 
     return (

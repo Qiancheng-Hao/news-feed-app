@@ -52,6 +52,7 @@ export default function PostDetail() {
     const [suggestedTags, setSuggestedTags] = useState([]);
     const [loading, setLoading] = useState(!post);
     const [isBackgroundLoading, setIsBackgroundLoading] = useState(true);
+    const [isAiLoading, setIsAiLoading] = useState(true);
 
     useEffect(() => {
         const passedPost = location.state?.post;
@@ -65,29 +66,55 @@ export default function PostDetail() {
             setRelatedPosts([]);
             setSuggestedTags([]);
             setIsBackgroundLoading(true);
+            setIsAiLoading(true);
         } else {
             setPost(null);
             setLoading(true);
             setIsBackgroundLoading(true);
+            setIsAiLoading(true);
         }
 
         // Fetch Full Data
         const fetchPostDetail = async () => {
             try {
                 const res = await request.get(`/posts/${id}`);
-                const { relatedPosts, suggestedTags, ...postData } = res;
+                const { relatedPosts, suggestedTags: dbTags, ...postData } = res;
 
                 setPost(postData);
                 setRelatedPosts(relatedPosts || []);
-                setSuggestedTags(suggestedTags || []);
+
+                // Trigger AI Topic Generation
+                fetchAiTopics(postData, dbTags || []);
+
             } catch (error) {
                 console.error(error);
                 if (!currentPostData) {
                     navigate(-1);
                 }
+                setIsAiLoading(false); // Stop loading on error
             } finally {
                 setLoading(false);
                 setIsBackgroundLoading(false);
+            }
+        };
+
+        const fetchAiTopics = async (postData, fallbackTags) => {
+            try {
+                const aiRes = await request.post('/ai/suggest-topics', {
+                    content: postData.content,
+                    images: postData.images,
+                });
+                
+                if (aiRes.topics && aiRes.topics.length > 0) {
+                    setSuggestedTags(aiRes.topics);
+                } else {
+                    setSuggestedTags(fallbackTags);
+                }
+            } catch (e) {
+                console.error('AI Topics failed', e);
+                setSuggestedTags(fallbackTags);
+            } finally {
+                setIsAiLoading(false);
             }
         };
 
@@ -114,11 +141,11 @@ export default function PostDetail() {
 
             <div className="centerStyle">
                 <div className="detail-content">
-                    <PostCard post={post} />
+                    <PostCard post={post} priority={true} />
                 </div>
 
                 {/* Suggested Topics/Tags */}
-                {isBackgroundLoading ? (
+                {isAiLoading ? (
                     <TagsSkeleton />
                 ) : (
                     suggestedTags.length > 0 && (

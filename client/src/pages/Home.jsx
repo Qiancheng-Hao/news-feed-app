@@ -92,8 +92,8 @@ export default function Home() {
                 <PullToRefresh onRefresh={handleRefresh}>
                     {/* Scroll area container */}
                     <div className="centerStyle home-scroll-container">
-                        {/* first loading*/}
-                        {(isLoading || posts.length === 0) && hasMore ? (
+                        {/* first loading */}
+                        {isLoading && posts.length === 0 ? (
                             <>
                                 <PostSkeleton />
                                 <PostSkeleton />

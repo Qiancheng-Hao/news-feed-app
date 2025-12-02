@@ -5,6 +5,28 @@
         <link rel="icon" type="image/svg+xml" href="/vite.svg" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>newsfeed</title>
+        <link rel="preconnect" href="https://news-feed-app.tos-accelerate.volces.com" />
+        <script>
+            // Start fetching posts immediately
+            try {
+                const token = localStorage.getItem('token');
+                const headers = {
+                    'Content-Type': 'application/json'
+                };
+                if (token) {
+                    headers['Authorization'] = 'Bearer ' + token;
+                }
+
+                window.initialPostsPromise = fetch('/api/posts?page=1&pageSize=10', {
+                    headers: headers
+                }).then(res => {
+                    if (!res.ok) throw new Error(res.status);
+                    return res.json();
+                });
+            } catch (e) {
+                console.error('Preload failed', e);
+            }
+        </script>
     </head>
     <body>
         <div id="root"></div>

@@ -5,16 +5,9 @@ import useUserStore from '../../stores/useUserStore';
 import usePostStore from '../../stores/usePostStore';
 import request from '../../utils/request';
 import { useNavigate } from 'react-router-dom';
+import { getThumbnailUrl, getAcceleratedUrl } from '../../utils/image';
 import '../../styles/components/TipTap.css';
 import '../../styles/components/PostCard.css';
-
-// function to get thumbnail URL
-const getThumbnailUrl = (url) => {
-    if (!url) return '';
-    if (!url.includes('.volces.com')) return url;
-
-    return `${url}?x-tos-process=image/resize,w_300`;
-};
 
 export default function PostCard({ post, priority = false, clickable = false }) {
     const [visible, setVisible] = useState(false);
@@ -103,6 +96,7 @@ export default function PostCard({ post, priority = false, clickable = false }) 
                     <img
                         src={getThumbnailUrl(singleImg)}
                         loading={priority ? 'eager' : 'lazy'}
+                        fetchpriority={priority ? 'high' : 'auto'}
                         alt="post"
                         className="single-image"
                     />
@@ -125,12 +119,17 @@ export default function PostCard({ post, priority = false, clickable = false }) 
             >
                 {post.images.map((img, index) => (
                     <div key={index} className="image-grid-item">
-                        <Image
+                        <img
                             src={getThumbnailUrl(img)}
-                            lazy={!priority}
-                            fit="cover"
-                            width="100%"
-                            height="100%"
+                            loading={priority ? 'eager' : 'lazy'}
+                            fetchpriority={priority && index === 0 ? 'high' : 'auto'}
+                            alt={`post-img-${index}`}
+                            style={{
+                                width: '100%',
+                                height: '100%',
+                                objectFit: 'cover',
+                                display: 'block',
+                            }}
                             onClick={(e) => {
                                 e.stopPropagation();
                                 setImageIndex(index);
@@ -148,10 +147,7 @@ export default function PostCard({ post, priority = false, clickable = false }) 
             {/* user info */}
             <div className="post-header">
                 <div className="post-avatar-wrapper">
-                    <Avatar
-                        src={`${post.User?.avatar.includes('.volces.com') ? `${post.User?.avatar}?x-tos-process=image/resize,w_300` : post.User?.avatar}`}
-                        className="post-avatar"
-                    />
+                    <Avatar src={getThumbnailUrl(post.User?.avatar)} className="post-avatar" />
                 </div>
                 <div>
                     <div className="post-username">{post.User?.username || '未知用户'}</div>
@@ -168,7 +164,7 @@ export default function PostCard({ post, priority = false, clickable = false }) 
             {renderImages()}
             {visible && (
                 <ImageViewer.Multi
-                    images={post.images || []}
+                    images={post.images?.map((img) => getAcceleratedUrl(img)) || []}
                     visible={visible}
                     defaultIndex={imageIndex}
                     onClose={() => setVisible(false)}
@@ -215,7 +211,11 @@ export default function PostCard({ post, priority = false, clickable = false }) 
                                 isConfirmingDelete ? (
                                     // Confirmation view
                                     <div className="popover-actions">
-                                        <Button size="small" fill="none" onClick={handleCancelDelete}>
+                                        <Button
+                                            size="small"
+                                            fill="none"
+                                            onClick={handleCancelDelete}
+                                        >
                                             返回
                                         </Button>
                                         <div className="action-divider"></div>

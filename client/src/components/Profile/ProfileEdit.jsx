@@ -15,6 +15,7 @@ import ImageUpload from '../Post/ImageUpload';
 import useVerifyCode from '../../hooks/useVerifyCode';
 import CaptchaModal from '../Captcha/CaptchaModal';
 import { IconLock, IconUser, IconImage, IconDoubleDown } from '@arco-design/web-react/icon';
+import { getThumbnailUrl } from '../../utils/image';
 import '@arco-design/web-react/dist/css/arco.css';
 import '../../styles/components/ProfileEdit.css';
 
@@ -145,7 +146,7 @@ export default function ProfileEdit({ user, updateUserInfo }) {
                         title={
                             <div className="profile-edit-header">
                                 <Avatar
-                                    src={`${user.avatar.includes('.volces.com') ? `${user.avatar}?x-tos-process=image/resize,w_100` : user.avatar}`}
+                                    src={getThumbnailUrl(user.avatar, 100)}
                                     className="profile-edit-avatar"
                                 />
                                 <div>

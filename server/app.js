@@ -4,6 +4,7 @@ const { initDB } = require('./db');
 const authRoutes = require('./routes/auth');
 const uploadRoutes = require('./routes/upload');
 const postRoutes = require('./routes/posts');
+const aiRoutes = require('./routes/ai');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -31,6 +32,7 @@ app.use(express.json()); // Allow parsing JSON request bodies
 app.use('/api/auth', authRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/posts', postRoutes);
+app.use('/api/ai', aiRoutes);
 
 // Test root route
 app.get('/', (req, res) => {
