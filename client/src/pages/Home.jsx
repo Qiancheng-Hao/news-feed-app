@@ -83,7 +83,7 @@ export default function Home() {
             {/* NavBar */}
             <div className="home-navbar-wrapper">
                 <div className="centerStyle">
-                    <NavBar back={null}>最新动态</NavBar>
+                    <NavBar back={null}>最新资讯</NavBar>
                 </div>
             </div>
 
@@ -104,7 +104,7 @@ export default function Home() {
                             <ErrorBlock
                                 status="empty"
                                 title="暂无内容"
-                                description="快去发布第一条动态吧！"
+                                description="快去发布第一条资讯吧！"
                             />
                         ) : (
                             <div>

@@ -71,14 +71,14 @@ export default function ImageUpload({ fileList, setFileList, maxCount = 9 }) {
                 )
             );
         } catch (e) {
-            // 🔥 Don't show error if user cancelled
+            // Don't show error if user cancelled
             if (e.name !== 'CanceledError' && e.code !== 'ERR_CANCELED') {
                 Toast.show('上传失败');
             }
             // upload failed -- remove the item
             setFileList((prev) => prev.filter((item) => item.id !== tempId));
         } finally {
-            // 🔥 Clean up controller
+            // Clean up controller
             uploadControllersRef.current.delete(tempId);
         }
     };

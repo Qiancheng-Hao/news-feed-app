@@ -21,7 +21,11 @@ export default function PostCard({ post, priority = false, clickable = false }) 
 
     const isAuthor = user?.id === post.User?.id;
 
-    const handleCardClick = () => {
+    const handleCardClick = (e) => {
+        if (visible) {
+            e?.stopPropagation();
+            return;
+        }
         if (clickable) {
             navigate(`/posts/${post.id}`, { state: { post } });
         }
@@ -71,7 +75,6 @@ export default function PostCard({ post, priority = false, clickable = false }) 
         const day = String(date.getDate()).padStart(2, '0');
         const hours = String(date.getHours()).padStart(2, '0');
         const minutes = String(date.getMinutes()).padStart(2, '0');
-
         return `${month}月${day}日 ${hours}:${minutes}`;
     };
 
@@ -103,21 +106,11 @@ export default function PostCard({ post, priority = false, clickable = false }) 
                 </div>
             );
         }
-
-        // multiple images case
         let gridColumns = 'repeat(3, 1fr)';
-        if (imageCount === 2 || imageCount === 4) {
-            gridColumns = 'repeat(2, 1fr)';
-        }
-
+        if (imageCount === 2 || imageCount === 4) gridColumns = 'repeat(2, 1fr)';
         return (
-            <div
-                className="image-grid"
-                style={{
-                    gridTemplateColumns: gridColumns,
-                }}
-            >
-                {post.images.map((img, index) => (
+            <div className="image-grid" style={{ gridTemplateColumns: gridColumns }}>
+                {validImages.map((img, index) => (
                     <div key={index} className="image-grid-item">
                         <img
                             src={getThumbnailUrl(img)}
@@ -143,7 +136,7 @@ export default function PostCard({ post, priority = false, clickable = false }) 
     };
 
     return (
-        <Card className="post-card" onClick={clickable ? handleCardClick : undefined}>
+        <Card className="post-card" onClick={handleCardClick}>
             {/* user info */}
             <div className="post-header">
                 <div className="post-avatar-wrapper">

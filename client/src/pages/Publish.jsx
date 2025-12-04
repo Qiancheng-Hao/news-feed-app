@@ -44,7 +44,7 @@ export default function Publish() {
                         </Button>
                     }
                 >
-                    {isEditMode ? '编辑动态' : '发布动态'}
+                    {isEditMode ? '编辑资讯' : '发布资讯'}
                 </NavBar>
             </div>
 

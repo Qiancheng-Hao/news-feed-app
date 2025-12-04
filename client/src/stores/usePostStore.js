@@ -116,6 +116,12 @@ const usePostStore = create((set, get) => ({
     // remove post by id
     removePost: (postId) =>
         set((state) => ({ posts: state.posts.filter((post) => post.id !== postId) })),
+
+    // update post
+    updatePost: (updatedPost) =>
+        set((state) => ({
+            posts: state.posts.map((post) => (post.id === updatedPost.id ? updatedPost : post)),
+        })),
 }));
 
 export default usePostStore;

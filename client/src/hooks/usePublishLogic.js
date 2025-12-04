@@ -25,6 +25,7 @@ export default function usePublishLogic() {
     const [searchParams] = useSearchParams();
     const { user } = useUserStore();
     const fetchPosts = usePostStore((state) => state.fetchPosts);
+    const updatePost = usePostStore((state) => state.updatePost);
 
     // Determine mode
     const editPostId = searchParams.get('id');
@@ -348,13 +349,25 @@ export default function usePublishLogic() {
         try {
             if (isEditMode) {
                 //  UPDATE EXISTING POST
-                await request.put(`/posts/${editPostId}`, {
+                const updatedPost = await request.put(`/posts/${editPostId}`, {
                     content: contentRef.current,
                     images: fileListRef.current.map((item) => item.serverUrl).filter(Boolean),
                     tags: tagsRef.current,
                     status: 'published',
                 });
+
+                const completePost = { ...updatedPost, User: user };
+                updatePost(completePost);
+
                 Toast.show({ content: '更新成功！', icon: 'success' });
+
+                // Cleanup
+                if (DRAFT_LOCAL_STORAGE_KEY) {
+                    localStorage.removeItem(DRAFT_LOCAL_STORAGE_KEY);
+                }
+                await fetchPosts(true);
+                navigate('/');
+                return;
             } else {
                 //  PUBLISH NEW POST
                 await request.post('/posts', {
