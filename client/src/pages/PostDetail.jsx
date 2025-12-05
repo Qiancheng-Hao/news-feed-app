@@ -189,7 +189,7 @@ export default function PostDetail() {
                                             });
                                         }}
                                     >
-                                        <PostCard post={related} clickable={false} />
+                                        <PostCard post={related} clickable={false} mode="news" />
                                     </div>
                                 ))}
                             </div>

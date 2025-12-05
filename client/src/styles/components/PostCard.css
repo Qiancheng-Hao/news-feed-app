@@ -1,8 +1,10 @@
+/* --- Original Moments Style --- */
 .post-card {
     margin-bottom: 12px;
     border-radius: 0;
     border: none;
     padding: 16px;
+    background: #fff;
 }
 
 .post-header {
@@ -108,4 +110,159 @@
 .more-icon-wrapper {
     padding: 0 8px;
     color: #999;
+}
+
+/* --- News Mode Style (Image Right, Text Left) --- */
+.post-card-news {
+    height: 120px;
+    padding: 0 !important; /* Override default padding */
+    border-radius: 8px;
+    background: #fff;
+    margin-bottom: 12px;
+    border: none;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+}
+
+/* Target the inner body of the Card component */
+.post-card-news .adm-card-body {
+    padding: 12px !important;
+    flex: 1;
+    box-sizing: border-box;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.news-card-body-wrapper {
+    display: flex;
+    flex-direction: row;
+    flex: 1;
+    width: 100%;
+    overflow: hidden;
+}
+
+.news-content-left {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-width: 0;
+    height: 100%; /* Ensure it fills the height */
+}
+
+/* Add padding only if image exists */
+.post-card-news.has-image .news-content-left {
+    padding-right: 12px;
+}
+
+.news-image-right {
+    width: 96px; /* 120px total - 24px padding */
+    height: 96px;
+    flex-shrink: 0;
+    background-color: #f5f5f5;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.news-image-right img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.news-text-wrapper {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+    margin-bottom: 4px;
+}
+
+/* Strict 2-line limit */
+.news-text {
+    font-size: 15px;
+    line-height: 20px; /* Fixed line height */
+    height: 40px; /* Exactly 2 lines */
+    color: #888;
+
+    /* Line Clamp Magic */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 0;
+    padding: 0;
+    word-break: break-word;
+}
+
+/* Try to style the first line/paragraph. 
+   Since ::first-line doesn't work with -webkit-box, we target the first block element.
+   This assumes Tiptap wraps content in <p> or other blocks. */
+.news-text > :first-child {
+    color: #333 !important;
+    font-weight: bold !important;
+}
+
+/* Override Tiptap defaults with high specificity */
+.post-card-news .news-text p {
+    margin: 0 !important;
+    padding: 0 !important;
+    min-height: 0 !important;
+    line-height: 20px !important; /* Match container */
+}
+
+/* CRITICAL FIX: Override the global .tiptap min-height */
+.post-card-news .tiptap.news-text {
+    min-height: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+}
+
+/* Hide images inside the text summary */
+.news-text img {
+    display: none;
+}
+
+.news-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: #999;
+    height: 20px;
+    flex-shrink: 0; /* Prevent meta from shrinking */
+}
+
+.news-info-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    overflow: hidden;
+}
+
+.news-avatar {
+    --size: 16px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+}
+
+.news-username {
+    max-width: 80px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.news-date {
+    flex-shrink: 0;
+}
+
+.news-actions {
+    display: flex;
+    align-items: center;
 }

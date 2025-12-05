@@ -9,7 +9,7 @@ import { getThumbnailUrl, getAcceleratedUrl } from '../../utils/image';
 import '../../styles/components/TipTap.css';
 import '../../styles/components/PostCard.css';
 
-export default function PostCard({ post, priority = false, clickable = false }) {
+export default function PostCard({ post, priority = false, clickable = false, mode = 'original' }) {
     const [visible, setVisible] = useState(false);
     const [imageIndex, setImageIndex] = useState(0);
     const [popoverVisible, setPopoverVisible] = useState(false);
@@ -78,15 +78,138 @@ export default function PostCard({ post, priority = false, clickable = false }) 
         return `${month}月${day}日 ${hours}:${minutes}`;
     };
 
-    const imageCount = post.images?.length || 0;
+    // --- Render Logic for News Mode ---
+    if (mode === 'news') {
+        const validImages = Array.isArray(post.images) ? post.images.filter((img) => !!img) : [];
+        const hasImage = validImages.length > 0;
+        const firstImage = hasImage ? validImages[0] : null;
 
-    // render images based on count
+        // Replace headings and lists with paragraphs for uniform styling in news card
+        let contentWithHeadingsReplaced = post.content
+            ? post.content
+                  .replace(/<h[1-6][^>]*>/g, '<p>')
+                  .replace(/<\/h[1-6]>/g, '</p>')
+                  .replace(/<li[^>]*>/g, '<p>')
+                  .replace(/<\/li>/g, '</p>')
+                  .replace(/<\/?ul[^>]*>/g, '')
+                  .replace(/<\/?ol[^>]*>/g, '')
+            : '';
+
+        // Check if content is effectively empty
+        const strippedContent = contentWithHeadingsReplaced.replace(/<[^>]+>/g, '').trim();
+        if (!strippedContent) {
+            contentWithHeadingsReplaced = '<p>分享了图片</p>';
+        }
+
+        return (
+            <Card
+                className={`post-card-news ${hasImage ? 'has-image' : 'no-image'}`}
+                onClick={handleCardClick}
+            >
+                <div className="news-card-body-wrapper">
+                    {/* Left side */}
+                    <div className="news-content-left">
+                        <div className="news-text-wrapper">
+                            <div
+                                className="tiptap rich-text-content news-text"
+                                dangerouslySetInnerHTML={{ __html: contentWithHeadingsReplaced }}
+                            />
+                        </div>
+
+                        <div className="news-meta">
+                            <div className="news-info-left">
+                                <Avatar
+                                    src={getThumbnailUrl(post.User?.avatar)}
+                                    className="news-avatar"
+                                />
+                                <span className="news-username">
+                                    {post.User?.username || '未知用户'}
+                                </span>
+                                <span className="news-date">{formatDate(post.created_at)}</span>
+                            </div>
+                            {isAuthor && (
+                                <div onClick={(e) => e.stopPropagation()} className="news-actions">
+                                    <Popover
+                                        placement="left"
+                                        visible={popoverVisible}
+                                        onVisibleChange={handlePopoverVisibleChange}
+                                        content={
+                                            isConfirmingDelete ? (
+                                                <div className="popover-actions">
+                                                    <Button
+                                                        size="small"
+                                                        fill="none"
+                                                        onClick={handleCancelDelete}
+                                                    >
+                                                        返回
+                                                    </Button>
+                                                    <div className="action-divider"></div>
+                                                    <Button
+                                                        size="small"
+                                                        fill="none"
+                                                        color="danger"
+                                                        onClick={executeDelete}
+                                                    >
+                                                        删除
+                                                    </Button>
+                                                </div>
+                                            ) : (
+                                                <div className="popover-actions">
+                                                    <Button
+                                                        size="small"
+                                                        fill="none"
+                                                        onClick={handleEdit}
+                                                    >
+                                                        <EditSOutline />
+                                                    </Button>
+                                                    <div className="action-divider"></div>
+                                                    <Button
+                                                        size="small"
+                                                        fill="none"
+                                                        color="danger"
+                                                        onClick={handleDeleteClick}
+                                                    >
+                                                        <DeleteOutline />
+                                                    </Button>
+                                                </div>
+                                            )
+                                        }
+                                        trigger="click"
+                                    >
+                                        <div className="more-icon-wrapper">
+                                            <MoreOutline fontSize={16} />
+                                        </div>
+                                    </Popover>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Right side */}
+                    {hasImage && (
+                        <div className="news-image-right">
+                            <img
+                                src={getThumbnailUrl(firstImage)}
+                                loading={priority ? 'eager' : 'lazy'}
+                                fetchpriority={priority ? 'high' : 'auto'}
+                                alt="cover"
+                            />
+                        </div>
+                    )}
+                </div>
+            </Card>
+        );
+    }
+
+    // Original Mode
+    const validImages = Array.isArray(post.images) ? post.images.filter((img) => !!img) : [];
+    const imageCount = validImages.length;
     const renderImages = () => {
         if (imageCount === 0) return null;
 
         // one image case
         if (imageCount === 1) {
-            const singleImg = post.images[0];
+            const singleImg = validImages[0];
             return (
                 <div
                     className="single-image-wrapper"

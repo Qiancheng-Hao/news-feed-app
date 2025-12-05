@@ -7,23 +7,27 @@ import '../App.css';
 import '../styles/pages/Home.css';
 
 const PostSkeleton = () => (
-    <div className="skeleton-container">
-        <div className="skeleton-header">
-            <Skeleton.Title animated className="skeleton-avatar" />
-            <div className="skeleton-user-info">
-                <Skeleton.Paragraph lineCount={1} animated className="skeleton-username" />
+    <div className="skeleton-container news-skeleton">
+        <div className="skeleton-left">
+            <div className="skeleton-text-lines">
+                <Skeleton.Paragraph lineCount={2} animated />
+            </div>
+            <div className="skeleton-meta-row">
+                <Skeleton.Title animated className="skeleton-avatar-small" />
+                <div className="skeleton-meta-text">
+                    <Skeleton.Paragraph lineCount={1} animated />
+                </div>
             </div>
         </div>
-        <Skeleton.Paragraph lineCount={3} animated />
-        <div className="skeleton-image-placeholder" />
-        <div className="skeleton-footer">
-            <Skeleton.Paragraph lineCount={1} animated className="skeleton-footer-text" />
+        <div className="skeleton-right">
+            <Skeleton.Title animated className="skeleton-image-box" />
         </div>
     </div>
 );
 
 export default function Home() {
-    const { posts, isLoading, fetchPosts, hasMore, scrollPosition, setScrollPosition } = usePostStore();
+    const { posts, isLoading, fetchPosts, hasMore, scrollPosition, setScrollPosition } =
+        usePostStore();
     const scrollRef = useRef(null);
     const scrollTopRef = useRef(scrollPosition);
 
@@ -37,7 +41,7 @@ export default function Home() {
             // Restore scroll position
             el.scrollTop = scrollPosition;
             scrollTopRef.current = scrollPosition;
-            
+
             // Retry in case of layout shifts
             const attemptRestore = () => {
                 if (el.scrollHeight >= scrollPosition + el.clientHeight) {
@@ -48,9 +52,9 @@ export default function Home() {
             const timers = [
                 setTimeout(attemptRestore, 50),
                 setTimeout(attemptRestore, 150),
-                setTimeout(attemptRestore, 300)
+                setTimeout(attemptRestore, 300),
             ];
-            
+
             return () => timers.forEach(clearTimeout);
         }
     }, [scrollPosition]);
@@ -98,6 +102,9 @@ export default function Home() {
                                 <PostSkeleton />
                                 <PostSkeleton />
                                 <PostSkeleton />
+                                <PostSkeleton />
+                                <PostSkeleton />
+                                <PostSkeleton />
                             </>
                         ) : /* empty state */
                         posts.length === 0 && !hasMore ? (
@@ -110,7 +117,12 @@ export default function Home() {
                             <div>
                                 {posts.map((post, index) => (
                                     <div key={post.id} className="post-item-wrapper">
-                                        <PostCard post={post} priority={index < 4} clickable={true} />
+                                        <PostCard
+                                            post={post}
+                                            priority={index < 6}
+                                            clickable={true}
+                                            mode="news"
+                                        />
                                     </div>
                                 ))}
 
