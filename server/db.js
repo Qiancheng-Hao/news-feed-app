@@ -72,6 +72,10 @@ const Post = sequelize.define(
             type: DataTypes.JSON,
             allowNull: true,
         },
+        topics: {
+            type: DataTypes.JSON,
+            allowNull: true,
+        },
         status: {
             type: DataTypes.ENUM('published', 'draft'),
             defaultValue: 'published',

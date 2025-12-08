@@ -289,7 +289,7 @@ export default function PostCard({ post, priority = false, clickable = false, mo
             )}
 
             {/* Tags */}
-            {post.tags && post.tags.length > 0 && (
+            {/* {post.tags && post.tags.length > 0 && (
                 <div className="tags-wrapper">
                     {post.tags.map((tag, index) => (
                         <span
@@ -304,7 +304,7 @@ export default function PostCard({ post, priority = false, clickable = false, mo
                         </span>
                     ))}
                 </div>
-            )}
+            )} */}
 
             {/* Footer with time and actions */}
             <div className="post-footer">

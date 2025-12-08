@@ -1,7 +1,7 @@
 const express = require('express');
 const { Post, User, sequelize } = require('../db');
 const authenticateToken = require('../middleware/authMiddleware');
-const { generateTags } = require('../utils/ai');
+const { generateTags, generateTopics } = require('../utils/ai');
 const { Op } = require('sequelize');
 
 const router = express.Router();
@@ -10,21 +10,41 @@ async function processPostTagsInBackground(postId, content, images, postStatus) 
     // Only process if published and has content/images
     if (postStatus === 'published' && (content || (images && images.length > 0))) {
         try {
-            const generatedTags = await generateTags(content, images);
-            if (generatedTags && generatedTags.length > 0) {
-                const currentPost = await Post.findByPk(postId);
-                if (currentPost) {
+            // Run both AI tasks for tags and topics in parallel
+            const [generatedTags, generatedTopics] = await Promise.all([
+                generateTags(content, images),
+                generateTopics(content, images),
+            ]);
+
+            const currentPost = await Post.findByPk(postId);
+            if (currentPost) {
+                let changed = false;
+
+                // Update Tags
+                if (generatedTags && generatedTags.length > 0) {
                     const existingTags = currentPost.tags || [];
                     const mergedTags = Array.from(
                         new Set([...existingTags, ...generatedTags])
                     ).slice(0, 5);
                     currentPost.tags = mergedTags;
+                    changed = true;
+                }
+
+                // Update Topics
+                if (generatedTopics && generatedTopics.length > 0) {
+                    currentPost.topics = generatedTopics;
+                    changed = true;
+                }
+
+                if (changed) {
                     await currentPost.save();
-                    console.log(`🏷️ Tags processed for post ${postId}:`, mergedTags);
+                    console.log(
+                        `🏷️ AI processed: Tags=[${currentPost.tags}], Topics=[${currentPost.topics}]`
+                    );
                 }
             }
         } catch (err) {
-            console.error(`❌ Background tag processing failed for post ${postId}:`, err);
+            console.error(`❌ Background AI processing failed for post ${postId}:`, err);
         }
     }
 }
@@ -139,6 +159,11 @@ router.get('/:id', async (req, res) => {
         let relatedPosts = [];
         let suggestedTags = [];
 
+        // If we have stored AI topics, use them as the primary suggestion
+        if (post.topics && post.topics.length > 0) {
+            suggestedTags = post.topics;
+        }
+
         if (post.tags && post.tags.length > 0) {
             const tagConditions = post.tags.map((tag) =>
                 sequelize.literal(`JSON_CONTAINS(tags, '"${tag}"')`)
@@ -160,12 +185,12 @@ router.get('/:id', async (req, res) => {
                 order: [['created_at', 'DESC']],
             });
 
-            // Extract tags from related posts to form suggested topics
-            const allTags = relatedPosts.flatMap((p) => p.tags || []);
-            const originalTags = post.tags || [];
-
-            // Merge and deduplicate
-            suggestedTags = [...new Set([...originalTags, ...allTags])].slice(0, 10);
+            // If no AI topics yet, use tags from related posts
+            if (suggestedTags.length === 0) {
+                const allTags = relatedPosts.flatMap((p) => p.tags || []);
+                const originalTags = post.tags || [];
+                suggestedTags = [...new Set([...originalTags, ...allTags])].slice(0, 5);
+            }
         }
 
         res.json({ ...post.toJSON(), relatedPosts, suggestedTags });

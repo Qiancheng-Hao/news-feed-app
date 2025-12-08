@@ -1,29 +1,10 @@
 import { useEffect, useRef, useLayoutEffect } from 'react';
 import { NavBar, PullToRefresh, ErrorBlock, DotLoading, InfiniteScroll } from 'antd-mobile';
-import { Skeleton } from 'antd-mobile';
 import PostCard from '../components/Post/PostCard';
+import PostSkeleton from '../components/Post/PostSkeleton';
 import usePostStore from '../stores/usePostStore';
 import '../App.css';
 import '../styles/pages/Home.css';
-
-const PostSkeleton = () => (
-    <div className="skeleton-container news-skeleton">
-        <div className="skeleton-left">
-            <div className="skeleton-text-lines">
-                <Skeleton.Paragraph lineCount={2} animated />
-            </div>
-            <div className="skeleton-meta-row">
-                <Skeleton.Title animated className="skeleton-avatar-small" />
-                <div className="skeleton-meta-text">
-                    <Skeleton.Paragraph lineCount={1} animated />
-                </div>
-            </div>
-        </div>
-        <div className="skeleton-right">
-            <Skeleton.Title animated className="skeleton-image-box" />
-        </div>
-    </div>
-);
 
 export default function Home() {
     const { posts, isLoading, fetchPosts, hasMore, scrollPosition, setScrollPosition } =

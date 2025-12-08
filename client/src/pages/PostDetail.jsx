@@ -3,6 +3,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { NavBar, DotLoading, Skeleton } from 'antd-mobile';
 import request from '../utils/request';
 import PostCard from '../components/Post/PostCard';
+import PostSkeleton from '../components/Post/PostSkeleton';
 import '../styles/pages/PostDetail.css';
 
 const TagsSkeleton = () => (
@@ -24,14 +25,8 @@ const RelatedPostsSkeleton = () => (
     <div className="related-section">
         <div className="section-title">相关推荐</div>
         <div className="related-posts-list">
-            {[1, 2].map((i) => (
-                <div key={i} style={{ background: '#fff', padding: 16, marginBottom: 12 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: 12 }}>
-                        <Skeleton animated style={{ width: 40, height: 40, borderRadius: '50%' }} />
-                        <Skeleton animated style={{ width: '30%', height: 20, marginLeft: 12 }} />
-                    </div>
-                    <Skeleton.Paragraph lineCount={2} animated />
-                </div>
+            {[1, 2, 3].map((i) => (
+                <PostSkeleton key={i} />
             ))}
         </div>
     </div>
@@ -52,7 +47,6 @@ export default function PostDetail() {
     const [suggestedTags, setSuggestedTags] = useState([]);
     const [loading, setLoading] = useState(!post);
     const [isBackgroundLoading, setIsBackgroundLoading] = useState(true);
-    const [isAiLoading, setIsAiLoading] = useState(true);
 
     useEffect(() => {
         const passedPost = location.state?.post;
@@ -66,12 +60,10 @@ export default function PostDetail() {
             setRelatedPosts([]);
             setSuggestedTags([]);
             setIsBackgroundLoading(true);
-            setIsAiLoading(true);
         } else {
             setPost(null);
             setLoading(true);
             setIsBackgroundLoading(true);
-            setIsAiLoading(true);
         }
 
         // Fetch Full Data
@@ -82,39 +74,15 @@ export default function PostDetail() {
 
                 setPost(postData);
                 setRelatedPosts(relatedPosts || []);
-
-                // Trigger AI Topic Generation
-                fetchAiTopics(postData, dbTags || []);
-
+                setSuggestedTags(dbTags || []);
             } catch (error) {
                 console.error(error);
                 if (!currentPostData) {
                     navigate(-1);
                 }
-                setIsAiLoading(false); // Stop loading on error
             } finally {
                 setLoading(false);
                 setIsBackgroundLoading(false);
-            }
-        };
-
-        const fetchAiTopics = async (postData, fallbackTags) => {
-            try {
-                const aiRes = await request.post('/ai/suggest-topics', {
-                    content: postData.content,
-                    images: postData.images,
-                });
-                
-                if (aiRes.topics && aiRes.topics.length > 0) {
-                    setSuggestedTags(aiRes.topics);
-                } else {
-                    setSuggestedTags(fallbackTags);
-                }
-            } catch (e) {
-                console.error('AI Topics failed', e);
-                setSuggestedTags(fallbackTags);
-            } finally {
-                setIsAiLoading(false);
             }
         };
 
@@ -145,7 +113,7 @@ export default function PostDetail() {
                 </div>
 
                 {/* Suggested Topics/Tags */}
-                {isAiLoading ? (
+                {isBackgroundLoading ? (
                     <TagsSkeleton />
                 ) : (
                     suggestedTags.length > 0 && (
