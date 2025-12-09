@@ -80,7 +80,16 @@ export default function PostCard({ post, priority = false, clickable = false, mo
 
     // --- Render Logic for News Mode ---
     if (mode === 'news') {
-        const validImages = Array.isArray(post.images) ? post.images.filter((img) => !!img) : [];
+        let validImages = Array.isArray(post.images) ? post.images.filter((img) => !!img) : [];
+        
+        // If no images in fileList, try to extract from content
+        if (validImages.length === 0 && post.content) {
+            const imgMatch = post.content.match(/<img[^>]+src="([^">]+)"/);
+            if (imgMatch && imgMatch[1]) {
+                validImages = [imgMatch[1]];
+            }
+        }
+
         const hasImage = validImages.length > 0;
         const firstImage = hasImage ? validImages[0] : null;
 

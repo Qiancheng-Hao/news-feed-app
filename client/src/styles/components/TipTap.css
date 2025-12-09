@@ -3,14 +3,15 @@
     margin-top: 0;
 }
 
-/* Image styles
+/* Image styles */
 .tiptap img {
-    max-width: 50%;
+    max-width: 80%;
+    max-height: 300px;
     height: auto;
     display: block;
-    margin: 1rem 0;
+    margin: 1rem auto;
     border-radius: 8px;
-} */
+}
 
 /* List styles */
 .tiptap ul,
@@ -97,6 +98,7 @@
 .text-editor {
     border-radius: 5px;
     border: 1px solid rgb(22, 93, 255);
+    border-top: none;
 }
 
 .button-group {
@@ -105,10 +107,16 @@
     display: flex;
     align-items: center;
     border-bottom: 1px solid rgb(22, 93, 255);
+    border-top: 1px solid rgb(22, 93, 255);
     overflow-x: auto;
     overscroll-behavior-x: contain;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: thin;
+    position: sticky;
+    top: 0;
+    background-color: #fff;
+    z-index: 10;
+    border-radius: 5px 5px 0 0;
 }
 
 /* Placeholder styling for empty editor */

@@ -2,8 +2,8 @@ import React, { useState, useRef } from 'react';
 import { Toast, ProgressBar } from 'antd-mobile';
 import { CloseOutline, AddOutline } from 'antd-mobile-icons';
 import request from '../../utils/request';
-import axios from 'axios';
 import { getThumbnailUrl } from '../../utils/image';
+import useUpload from '../../hooks/useUpload';
 import '../../styles/components/ImageUpload.css';
 
 // convert File to Base64 data URL
@@ -20,14 +20,12 @@ const fileToDataURL = (file) => {
 export default function ImageUpload({ fileList, setFileList, maxCount = 9 }) {
     const [isDragging, setIsDragging] = useState(false);
     const fileInputRef = useRef(null);
-    const uploadControllersRef = useRef(new Map()); // Track upload abort controllers
+    const { uploadImage, cancelUpload } = useUpload();
 
     // upload file
-    const uploadFile = async (file) => {
+    const handleUpload = async (file) => {
         // set the ID for file
         const tempId = Date.now() + Math.random().toString();
-        const abortController = new AbortController();
-        uploadControllersRef.current.set(tempId, abortController);
         const base64Url = await fileToDataURL(file);
 
         // Add the image to the list (status: uploading, progress: 0)
@@ -43,18 +41,9 @@ export default function ImageUpload({ fileList, setFileList, maxCount = 9 }) {
 
         // start uploading
         try {
-            const signRes = await request.get('/upload/presign', {
-                params: { fileName: file.name, fileType: file.type },
-            });
-
-            const { uploadUrl, publicUrl } = signRes;
-
-            await axios.put(uploadUrl, file, {
-                headers: { 'Content-Type': file.type },
-                signal: abortController.signal, // 🔥 Allow cancellation
-                // real-time progress update
-                onUploadProgress: (e) => {
-                    const percent = Math.round((e.loaded * 100) / e.total);
+            const publicUrl = await uploadImage(file, {
+                customId: tempId,
+                onProgress: (percent) => {
                     // update progress for this specific ID
                     setFileList((prev) =>
                         prev.map((item) => (item.id === tempId ? { ...item, percent } : item))
@@ -77,9 +66,6 @@ export default function ImageUpload({ fileList, setFileList, maxCount = 9 }) {
             }
             // upload failed -- remove the item
             setFileList((prev) => prev.filter((item) => item.id !== tempId));
-        } finally {
-            // Clean up controller
-            uploadControllersRef.current.delete(tempId);
         }
     };
 
@@ -101,7 +87,7 @@ export default function ImageUpload({ fileList, setFileList, maxCount = 9 }) {
                 Toast.show('图片过大，已跳过');
                 return;
             }
-            uploadFile(file);
+            handleUpload(file);
         });
 
         // clear input to allow selecting the same image again
@@ -111,9 +97,8 @@ export default function ImageUpload({ fileList, setFileList, maxCount = 9 }) {
     // handle delete
     const handleDelete = (targetItem) => {
         // If still uploading, abort the upload
-        if (targetItem.status === 'uploading' && uploadControllersRef.current.has(targetItem.id)) {
-            uploadControllersRef.current.get(targetItem.id).abort();
-            uploadControllersRef.current.delete(targetItem.id);
+        if (targetItem.status === 'uploading') {
+            cancelUpload(targetItem.id);
         }
 
         // If already uploaded successfully, delete from server
@@ -156,7 +141,7 @@ export default function ImageUpload({ fileList, setFileList, maxCount = 9 }) {
                 Toast.show('只能上传图片');
                 return;
             }
-            uploadFile(file);
+            handleUpload(file);
         });
     };
 

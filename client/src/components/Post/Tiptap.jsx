@@ -1,16 +1,17 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { TextStyleKit } from '@tiptap/extension-text-style';
-import { EditorContent, useEditor, useEditorState } from '@tiptap/react';
+import { EditorContent, useEditor, useEditorState, ReactNodeViewRenderer } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
 import Placeholder from '@tiptap/extension-placeholder';
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
-// import Image from '@tiptap/extension-image';
+import Image from '@tiptap/extension-image';
 import { common, createLowlight } from 'lowlight';
 import { Button } from '@arco-design/web-react';
-// import { Toast } from 'antd-mobile';
-// import request from '../../utils/request';
-// import axios from 'axios';
+import { Toast } from 'antd-mobile';
+import useUpload from '../../hooks/useUpload';
+import TiptapImage from './TiptapImage';
+import { getThumbnailUrl } from '../../utils/image';
 import {
     IconH1,
     IconH2,
@@ -29,7 +30,7 @@ import {
     IconUndo,
     IconRedo,
     IconUnderline,
-    // IconImage,
+    IconImage,
 } from '@arco-design/web-react/icon';
 import '@arco-design/web-react/dist/css/arco.css';
 import { Extension } from '@tiptap/core';
@@ -52,6 +53,21 @@ const TabKeyExtension = Extension.create({
     },
 });
 
+// Custom Image Extension with Node View and uploadProgress attribute
+const CustomImage = Image.extend({
+    addAttributes() {
+        return {
+            ...this.parent?.(),
+            uploadProgress: {
+                default: null,
+            },
+        };
+    },
+    addNodeView() {
+        return ReactNodeViewRenderer(TiptapImage);
+    },
+});
+
 const extensions = [
     TextStyleKit,
     // Disable the default CodeBlock so we don't have duplicates
@@ -66,7 +82,7 @@ const extensions = [
     CodeBlockLowlight.configure({
         lowlight,
     }),
-    Image,
+    CustomImage,
     TabKeyExtension,
 ];
 
@@ -157,8 +173,20 @@ const toggleBlockquoteCommand = (editor) => {
     return editor.chain().focus().unsetBlockquote().run();
 };
 
+// convert File to Base64 data URL
+const fileToDataURL = (file) => {
+    return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            resolve(e.target.result);
+        };
+        reader.readAsDataURL(file);
+    });
+};
+
 function MenuBar({ editor }) {
-    // const fileInputRef = useRef(null);
+    const fileInputId = 'tiptap-image-upload-input';
+    const { uploadImage } = useUpload();
 
     // Read the current editor's state, and re-render the component when it changes
     const editorState = useEditorState({
@@ -193,50 +221,67 @@ function MenuBar({ editor }) {
         },
     });
 
-    // const handleImageUpload = async (e) => {
-    //     const file = e.target.files[0];
-    //     if (!file) return;
+    const handleImageUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
 
-    //     // Clear input so same file can be selected again
-    //     e.target.value = '';
+        // Clear input so same file can be selected again
+        e.target.value = '';
 
-    //     if (file.size > 20 * 1024 * 1024) {
-    //         Toast.show('图片过大');
-    //         return;
-    //     }
+        if (file.size > 20 * 1024 * 1024) {
+            Toast.show('图片过大');
+            return;
+        }
 
-    //     const loadingToast = Toast.show({
-    //         icon: 'loading',
-    //         content: '上传中...',
-    //         duration: 0,
-    //     });
+        // Show local preview immediately with progress 0
+        const base64Url = await fileToDataURL(file);
+        if (editor) {
+            editor.chain().focus().setImage({ src: base64Url, uploadProgress: 0 }).run();
+        }
 
-    //     try {
-    //         // 1. Get presigned URL
-    //         const signRes = await request.get('/upload/presign', {
-    //             params: { fileName: file.name, fileType: file.type },
-    //         });
-    //         const { uploadUrl, publicUrl } = signRes;
+        try {
+            const publicUrl = await uploadImage(file, {
+                onProgress: (percent) => {
+                    // Update the specific image node's progress
+                    editor.state.doc.descendants((node, pos) => {
+                        if (node.type.name === 'image' && node.attrs.src === base64Url) {
+                            const transaction = editor.state.tr.setNodeMarkup(pos, undefined, {
+                                ...node.attrs,
+                                uploadProgress: percent,
+                            });
+                            editor.view.dispatch(transaction);
+                            return false; // Stop traversal
+                        }
+                        return true;
+                    });
+                },
+            });
 
-    //         // 2. Upload to cloud
-    //         await axios.put(uploadUrl, file, {
-    //             headers: { 'Content-Type': file.type },
-    //         });
+            // Replace local preview with server URL and remove progress
+            if (editor && publicUrl) {
+                const optimizedUrl = getThumbnailUrl(publicUrl);
 
-    //         // 3. Insert into editor
-    //         if (editor) {
-    //             // Append resize parameter to optimize display
-    //             const optimizedUrl = `${publicUrl}?x-tos-process=image/resize,w_800`;
-    //             editor.chain().focus().setImage({ src: optimizedUrl }).run();
-    //         }
-    //         loadingToast.close();
-    //         Toast.show({ icon: 'success', content: '上传成功' });
-    //     } catch (error) {
-    //         console.error(error);
-    //         loadingToast.close();
-    //         Toast.show({ icon: 'fail', content: '上传失败' });
-    //     }
-    // };
+                // Find the image node with the base64 src and update it
+                editor.state.doc.descendants((node, pos) => {
+                    if (node.type.name === 'image' && node.attrs.src === base64Url) {
+                        const transaction = editor.state.tr.setNodeMarkup(pos, undefined, {
+                            ...node.attrs,
+                            src: optimizedUrl,
+                            uploadProgress: null, // Remove progress bar
+                        });
+                        editor.view.dispatch(transaction);
+                        return false; // Stop traversal
+                    }
+                    return true;
+                });
+
+                Toast.show({ icon: 'success', content: '上传成功' });
+            }
+        } catch (error) {
+            console.error(error);
+            Toast.show({ icon: 'fail', content: '上传失败' });
+        }
+    };
 
     // Button configuration array
     const buttons = [
@@ -306,12 +351,12 @@ function MenuBar({ editor }) {
             // disabled: editorState.isBulletList || editorState.isOrderedList,
             icon: <IconQuote />,
         },
-        // {
-        //     label: 'Image',
-        //     action: () => fileInputRef.current.click(),
-        //     isActive: false,
-        //     icon: <IconImage />,
-        // },
+        {
+            label: 'Image',
+            action: () => document.getElementById('tiptap-image-upload-input')?.click(),
+            isActive: false,
+            icon: <IconImage />,
+        },
         {
             label: 'Horizontal rule',
             action: () => editor.chain().focus().setHorizontalRule().run(),
@@ -382,15 +427,13 @@ function MenuBar({ editor }) {
 
     return (
         <div className="button-group" aria-label="Formatting toolbar" role="toolbar">
-            {/* 
             <input
                 type="file"
                 accept="image/*"
-                ref={fileInputRef}
+                id={fileInputId}
                 style={{ display: 'none' }}
                 onChange={handleImageUpload}
             />
-            */}
 
             {buttons.map((btn, index) => (
                 <Button

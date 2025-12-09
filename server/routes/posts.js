@@ -25,22 +25,26 @@ async function processPostTagsInBackground(postId, content, images, postStatus) 
                     const existingTags = currentPost.tags || [];
                     const mergedTags = Array.from(
                         new Set([...existingTags, ...generatedTags])
-                    ).slice(0, 5);
+                    ).slice(0, 20);
                     currentPost.tags = mergedTags;
                     changed = true;
                 }
 
                 // Update Topics
                 if (generatedTopics && generatedTopics.length > 0) {
-                    currentPost.topics = generatedTopics;
+                    const userTags = currentPost.tags || [];
+                    const mergedTopics = Array.from(
+                        new Set([...userTags, ...generatedTopics])
+                    ).slice(0, 10);
+                    currentPost.topics = mergedTopics;
                     changed = true;
                 }
 
                 if (changed) {
                     await currentPost.save();
-                    console.log(
-                        `🏷️ AI processed: Tags=[${currentPost.tags}], Topics=[${currentPost.topics}]`
-                    );
+                    // console.log(
+                    //     `🏷️ AI processed: Tags=[${currentPost.tags}], Topics=[${currentPost.topics}]`
+                    // );
                 }
             }
         } catch (err) {
@@ -66,6 +70,7 @@ router.post('/', authenticateToken, async (req, res) => {
             content: content || '',
             images: images || [],
             tags: tags || [],
+            topics: [],
             status: status,
         });
 
@@ -181,7 +186,7 @@ router.get('/:id', async (req, res) => {
                         attributes: ['id', 'username', 'avatar'],
                     },
                 ],
-                limit: 10,
+                limit: 20,
                 order: [['created_at', 'DESC']],
             });
 
@@ -220,7 +225,10 @@ router.put('/:id', authenticateToken, async (req, res) => {
         // Update fields
         if (content !== undefined) post.content = content;
         if (images !== undefined) post.images = images;
-        if (tags !== undefined) post.tags = tags;
+        if (tags !== undefined) {
+            post.tags = tags;
+            post.topics = tags;
+        }
         if (status !== undefined) post.status = status;
 
         await post.save();
@@ -229,6 +237,12 @@ router.put('/:id', authenticateToken, async (req, res) => {
 
         // Trigger background tag processing
         processPostTagsInBackground(postId, post.content, post.images, post.status);
+
+        console.log(
+            '✅',
+            req.user.username,
+            `更新了帖子（${status === 'published' ? '已发布' : '草稿'}）`
+        );
     } catch (error) {
         console.error('更新失败:', error);
         res.status(500).json({ message: '服务器错误' });

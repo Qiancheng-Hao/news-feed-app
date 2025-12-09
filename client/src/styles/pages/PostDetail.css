@@ -1,7 +1,7 @@
 .post-detail-page {
     height: 100%;
     overflow-y: auto;
-    background-color: #f5f5f5;
+    background: transparent;
     padding-bottom: 20px;
     -webkit-overflow-scrolling: touch;
 }

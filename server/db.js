@@ -109,6 +109,22 @@ const initDB = async () => {
         await sequelize.sync();
         console.log('✅ 所有表模型已同步！');
 
+        // Try to add Multi-Valued Index for JSON tags
+        try {
+            await sequelize.query(
+                'ALTER TABLE posts ADD INDEX idx_tags ( (CAST(tags AS CHAR(255) ARRAY)) );'
+            );
+            console.log('✅ JSON索引 (idx_tags) 创建成功');
+        } catch (err) {
+            // Ignore error if index already exists (Error 1061)
+            if (err.original && err.original.errno === 1061) {
+                console.log('ℹ️ JSON索引 (idx_tags) 已存在');
+            } else {
+                // Don't spam console if it's just a version issue or other non-critical error
+                // console.warn('⚠️ 无法创建JSON索引 (可能是MySQL版本低于8.0):', err.message);
+            }
+        }
+
         // await sequelize.query('SET FOREIGN_KEY_CHECKS = 0;');
         // await User.sync({ force: true });
         // await sequelize.query('SET FOREIGN_KEY_CHECKS = 1;');

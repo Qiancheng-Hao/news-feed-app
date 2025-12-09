@@ -9,10 +9,11 @@ export default function Publish() {
     const {
         content,
         setContent,
-        fileList,
-        setFileList,
+        // fileList,
+        // setFileList,
         tags,
         setTags,
+        suggestedTopics,
         isSubmitting,
         statusText,
         isEditMode,
@@ -70,8 +71,30 @@ export default function Publish() {
                                 ))}
                             </div>
                         )}
+
+                        {/* Suggested Topics */}
+                        {suggestedTopics && suggestedTopics.length > 0 && (
+                            <div className="publish-suggestions-wrapper">
+                                <div className="publish-suggestions-title">推荐话题</div>
+                                <div className="publish-suggestions-list">
+                                    {suggestedTopics.map((topic, index) => {
+                                        const isActive = tags.includes(topic);
+                                        if (isActive) return null;
+                                        return (
+                                            <span
+                                                key={index}
+                                                className="publish-suggestion-item"
+                                                onClick={() => setTags([...tags, topic])}
+                                            >
+                                                #{topic}
+                                            </span>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )}
                     </div>
-                    <ImageUpload fileList={fileList} setFileList={setFileList} maxCount={9} />
+                    {/* <ImageUpload fileList={fileList} setFileList={setFileList} maxCount={9} /> */}
                 </div>
             </div>
         </div>

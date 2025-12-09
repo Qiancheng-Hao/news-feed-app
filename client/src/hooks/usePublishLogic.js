@@ -42,6 +42,7 @@ export default function usePublishLogic() {
     const [content, setContent] = useState('');
     const [fileList, setFileList] = useState([]);
     const [tags, setTags] = useState([]);
+    const [suggestedTopics, setSuggestedTopics] = useState([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isOnline, setIsOnline] = useState(navigator.onLine); // Network status
     const [statusText, setStatusText] = useState('准备就绪');
@@ -54,6 +55,27 @@ export default function usePublishLogic() {
 
     useEffect(() => {
         contentRef.current = content;
+
+        // Tag Extraction Logic: #Tag followed by space
+        const regex = /#([\u4e00-\u9fa5a-zA-Z0-9]{1,20})(\s|&nbsp;)/;
+        const match = content.match(regex);
+
+        if (match) {
+            const fullMatch = match[0];
+            const tagName = match[1];
+
+            // Add to tags if not exists
+            setTags((prev) => {
+                if (!prev.includes(tagName)) {
+                    return [...prev, tagName];
+                }
+                return prev;
+            });
+
+            // Remove the tag text from content to "move" it to the bubble list
+            const newContent = content.replace(fullMatch, '');
+            setContent(newContent);
+        }
     }, [content]);
     useEffect(() => {
         fileListRef.current = fileList;
@@ -138,7 +160,20 @@ export default function usePublishLogic() {
                             status: 'done',
                         })) || [];
                     setFileList(images);
-                    setTags(initialData.tags || []);
+                    setTags([]);
+
+                    // Populate suggested topics
+                    if (!initialData.topics) {
+                        request
+                            .get(`/posts/${editPostId}`)
+                            .then((fullData) => {
+                                setSuggestedTopics(fullData.topics || []);
+                            })
+                            .catch((e) => console.error('Failed to fetch topics', e));
+                    } else {
+                        setSuggestedTopics(initialData.topics || []);
+                    }
+
                     setStatusText('正在编辑');
                 } else {
                     setStatusText('无法加载原帖，请从列表重新进入');
@@ -186,12 +221,7 @@ export default function usePublishLogic() {
                 // Handle Topic from URL or State
                 const topic = location.state?.topic || searchParams.get('topic');
                 if (topic) {
-                    setTags((prev) => {
-                        if (!prev.includes(topic)) {
-                            return [...prev, topic];
-                        }
-                        return prev;
-                    });
+                    setTags([topic]);
                 }
             }
         };
@@ -204,8 +234,15 @@ export default function usePublishLogic() {
     useEffect(() => {
         if (!DRAFT_LOCAL_STORAGE_KEY) return;
 
-        // Don't save empty state if we haven't initialized yet
-        if (isContentEmpty(content) && fileList.length === 0 && tags.length === 0) return;
+        if (isContentEmpty(content) && fileList.length === 0) {
+            localStorage.removeItem(DRAFT_LOCAL_STORAGE_KEY);
+            // // Only update status if we are not in the initial "ready" state to avoid noise
+            if (statusText !== '准备就绪') {
+                setStatusText('草稿已清空');
+            }
+
+            return;
+        }
 
         // Set status to indicate activity
         setStatusText('输入中...');
@@ -243,11 +280,16 @@ export default function usePublishLogic() {
         const currentFileList = fileListRef.current;
         const currentTags = tagsRef.current;
 
-        if (
-            isContentEmpty(currentContent) &&
-            currentFileList.length === 0 &&
-            currentTags.length === 0
-        ) {
+        // If content and images are empty, do not save
+        if (isContentEmpty(currentContent) && currentFileList.length === 0) {
+            if (draftIdRef.current) {
+                try {
+                    await request.delete(`/posts/${draftIdRef.current}`);
+                    setDraftId(null);
+                } catch (e) {
+                    console.error('Failed to delete empty draft', e);
+                }
+            }
             return;
         }
 
@@ -317,7 +359,7 @@ export default function usePublishLogic() {
 
         // Reset State
         if (isEditMode && originalDataRef.current) {
-            const { content, images, tags } = originalDataRef.current;
+            const { content, images } = originalDataRef.current;
             setContent(content || '');
             const formattedImages =
                 images?.map((url) => ({
@@ -327,7 +369,7 @@ export default function usePublishLogic() {
                     status: 'done',
                 })) || [];
             setFileList(formattedImages);
-            setTags(tags || []);
+            setTags([]);
             setStatusText('已重置为原帖内容');
         } else {
             // Clear everything
@@ -410,6 +452,7 @@ export default function usePublishLogic() {
         setFileList,
         tags,
         setTags,
+        suggestedTopics,
         isSubmitting,
         statusText,
         isEditMode,

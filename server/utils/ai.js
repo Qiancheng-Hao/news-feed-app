@@ -14,11 +14,26 @@ async function callAI(content, images, systemPrompt, logLabel) {
         return [];
     }
 
+    // Extract images from HTML content
+    const contentImages = [];
+    if (content) {
+        const imgRegex = /<img[^>]+src="([^">]+)"/g;
+        let match;
+        while ((match = imgRegex.exec(content)) !== null) {
+            if (match[1]) {
+                contentImages.push(match[1]);
+            }
+        }
+    }
+
+    // Merge explicit images with content images
+    const allImages = [...(images || []), ...contentImages];
+
     // Strip HTML tags for the text part
     const plainText = content ? content.replace(/<[^>]+>/g, '') : '';
 
     // If no content and no images, return empty
-    if (!plainText.trim() && (!images || images.length === 0)) return [];
+    if (!plainText.trim() && allImages.length === 0) return [];
 
     const userContent = [];
 
@@ -31,8 +46,10 @@ async function callAI(content, images, systemPrompt, logLabel) {
     }
 
     // Add images if exist
-    if (images && images.length > 0) {
-        images.forEach((url) => {
+    if (allImages.length > 0) {
+        const uniqueImages = [...new Set(allImages)];
+
+        uniqueImages.forEach((url) => {
             const separator = url.includes('?') ? '&' : '?';
             const resizedUrl = `${url}${separator}x-tos-process=image/resize,l_2048`;
 
@@ -69,7 +86,7 @@ async function callAI(content, images, systemPrompt, logLabel) {
             .map((item) => item.trim())
             .filter((item) => item.length > 0 && item.length < 20);
 
-        console.log(`🤖 AI Generated ${logLabel}:`, items);
+        // console.log(`🤖 AI Generated ${logLabel}:`, items);
         return items;
     } catch (error) {
         console.error(`❌ AI ${logLabel} Failed:`, error.message);
@@ -79,7 +96,7 @@ async function callAI(content, images, systemPrompt, logLabel) {
 
 async function generateTags(content, images = []) {
     const prompt =
-        '你是一个标签提取助手。请根据用户提供的文本和图片内容，提取 3 到 5 个**中文**关键词标签。无论原始内容是什么语言，都请输出中文标签。直接返回标签，用英文逗号分隔，不要包含任何解释、序号或额外标点符号。例如：风景,旅行,摄影';
+        '你是一个标签提取助手。请根据用户提供的文本和图片内容，提取 10 到 15 个**中文**关键词标签。无论原始内容是什么语言，都请输出中文标签。直接返回标签，用英文逗号分隔，不要包含任何解释、序号或额外标点符号。例如：风景,旅行,摄影';
     return callAI(content, images, prompt, 'Tags');
 }
 

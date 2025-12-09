@@ -2,7 +2,7 @@
     height: 100%;
     display: flex;
     flex-direction: column;
-    background: #f5f5f5;
+    background: transparent;
     overflow: hidden;
 }
 
@@ -69,4 +69,37 @@
 .publish-tag-close {
     cursor: pointer;
     font-weight: bold;
+}
+
+.publish-suggestions-wrapper {
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px dashed #eee;
+}
+
+.publish-suggestions-title {
+    font-size: 12px;
+    color: #999;
+    margin-bottom: 8px;
+}
+
+.publish-suggestions-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.publish-suggestion-item {
+    background: #f5f5f5;
+    color: #666;
+    padding: 4px 12px;
+    border-radius: 16px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.publish-suggestion-item:active {
+    background: #e6f7ff;
+    color: #1890ff;
 }
