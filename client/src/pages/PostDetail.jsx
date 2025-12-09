@@ -109,7 +109,11 @@ export default function PostDetail() {
 
             <div className="centerStyle">
                 <div className="detail-content">
-                    <PostCard post={post} priority={true} />
+                    <PostCard 
+                        post={post} 
+                        priority={true} 
+                        onDelete={() => navigate(-1)} 
+                    />
                 </div>
 
                 {/* Suggested Topics/Tags */}

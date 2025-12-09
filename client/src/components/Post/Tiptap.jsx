@@ -259,7 +259,7 @@ function MenuBar({ editor }) {
 
             // Replace local preview with server URL and remove progress
             if (editor && publicUrl) {
-                const optimizedUrl = getThumbnailUrl(publicUrl);
+                const optimizedUrl = getThumbnailUrl(publicUrl, 800);
 
                 // Find the image node with the base64 src and update it
                 editor.state.doc.descendants((node, pos) => {

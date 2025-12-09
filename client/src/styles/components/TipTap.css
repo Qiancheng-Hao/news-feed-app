@@ -5,7 +5,8 @@
 
 /* Image styles */
 .tiptap img {
-    max-width: 80%;
+    width: auto;
+    max-width: min(80%, 800px); 
     max-height: 300px;
     height: auto;
     display: block;

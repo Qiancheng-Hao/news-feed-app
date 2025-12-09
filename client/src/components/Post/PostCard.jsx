@@ -9,7 +9,7 @@ import { getThumbnailUrl, getAcceleratedUrl } from '../../utils/image';
 import '../../styles/components/TipTap.css';
 import '../../styles/components/PostCard.css';
 
-export default function PostCard({ post, priority = false, clickable = false, mode = 'original' }) {
+export default function PostCard({ post, priority = false, clickable = false, mode = 'original', onDelete }) {
     const [visible, setVisible] = useState(false);
     const [imageIndex, setImageIndex] = useState(0);
     const [popoverVisible, setPopoverVisible] = useState(false);
@@ -46,6 +46,9 @@ export default function PostCard({ post, priority = false, clickable = false, mo
             await request.delete(`/posts/${post.id}`);
             Toast.show('删除成功');
             removePost(post.id);
+            if (onDelete) {
+                onDelete();
+            }
         } catch {
             // request.js handles error
         }

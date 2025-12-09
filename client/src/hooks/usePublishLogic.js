@@ -8,6 +8,13 @@ import usePostStore from '../stores/usePostStore';
 // check if HTML content is effectively empty
 const isContentEmpty = (html) => {
     if (!html) return true;
+
+    // If the HTML contains an image tag, it's not empty
+    if (html.includes('<img')) {
+        return false;
+    }
+
+    // Otherwise, check for non-empty text content
     // Remove HTML tags
     let text = html.replace(/<[^>]*>/g, '');
     // Replace common HTML entities
@@ -52,6 +59,7 @@ export default function usePublishLogic() {
     const tagsRef = useRef(tags);
     const draftIdRef = useRef(draftId);
     const originalDataRef = useRef(null); // Store original data for reset
+    const isSyncingRef = useRef(false); // Track cloud sync status
 
     useEffect(() => {
         contentRef.current = content;
@@ -244,8 +252,10 @@ export default function usePublishLogic() {
             return;
         }
 
-        // Set status to indicate activity
-        setStatusText('输入中...');
+        // Set status to indicate activity, but only if not currently syncing to cloud
+        if (!isSyncingRef.current) {
+            setStatusText('输入中...');
+        }
 
         // Debounce: Wait 1000ms after the last change before saving
         const handler = setTimeout(() => {
@@ -257,7 +267,11 @@ export default function usePublishLogic() {
                 updated_at: new Date().toISOString(),
             };
             localStorage.setItem(DRAFT_LOCAL_STORAGE_KEY, JSON.stringify(localDraft));
-            setStatusText('更改已保存至本地');
+            
+            // Only update status if not syncing
+            if (!isSyncingRef.current) {
+                setStatusText('更改已保存至本地');
+            }
         }, 1000);
 
         // Clear the timeout if the user types again within 1000ms
@@ -294,6 +308,7 @@ export default function usePublishLogic() {
         }
 
         setStatusText('正在同步至云端...');
+        isSyncingRef.current = true;
         try {
             const payload = {
                 content: currentContent,
@@ -306,7 +321,17 @@ export default function usePublishLogic() {
             const currentDraftId = draftIdRef.current;
 
             if (currentDraftId) {
-                savedDraft = await request.put(`/posts/${currentDraftId}`, payload);
+                try {
+                    savedDraft = await request.put(`/posts/${currentDraftId}`, payload);
+                } catch (error) {
+                    // If draft not found (404), try creating a new one
+                    if (error.response && error.response.status === 404) {
+                        savedDraft = await request.post('/posts', payload);
+                        setDraftId(savedDraft.id);
+                    } else {
+                        throw error;
+                    }
+                }
             } else {
                 savedDraft = await request.post('/posts', payload);
                 setDraftId(savedDraft.id);
@@ -314,6 +339,10 @@ export default function usePublishLogic() {
             setStatusText('所有更改已同步至云端');
         } catch {
             setStatusText('云端同步失败');
+        } finally {
+            setTimeout(() => {
+                isSyncingRef.current = false;
+            }, 2000);
         }
     }, [isOnline, isEditMode]);
 
@@ -382,8 +411,12 @@ export default function usePublishLogic() {
 
     //  Final Publish
     const handleSubmit = async () => {
-        if (isContentEmpty(contentRef.current) && fileListRef.current.length === 0)
-            return Toast.show('写点什么吧...');
+        if (isContentEmpty(contentRef.current)) {
+            if (fileListRef.current.length === 0) {
+                return Toast.show('写点什么吧...');
+            }
+        }
+        
         if (fileListRef.current.some((item) => item.status === 'uploading'))
             return Toast.show('图片还在上传中...');
 

@@ -46,7 +46,13 @@ export default function TiptapImage(props) {
                 }}
             >
                 {/* Inner container relative to image size */}
-                <div style={{ position: 'relative', display: 'inline-block', maxWidth: '100%' }}>
+                <div
+                    style={{
+                        position: 'relative',
+                        display: 'inline-block',
+                        maxWidth: 'min(80%, 800px)',
+                    }}
+                >
                     <img
                         src={displaySrc}
                         alt={alt}
@@ -54,6 +60,8 @@ export default function TiptapImage(props) {
                         className={selected ? 'ProseMirror-selectednode' : ''}
                         style={{
                             maxWidth: '100%',
+                            maxHeight: '300px',
+                            width: 'auto',
                             height: 'auto',
                             display: 'block',
                             borderRadius: '8px',
@@ -61,6 +69,7 @@ export default function TiptapImage(props) {
                             transition: 'opacity 0.3s',
                             border: selected ? '2px solid #165dff' : '2px solid transparent',
                             boxSizing: 'border-box',
+                            objectFit: 'contain',
                         }}
                     />
 
@@ -74,14 +83,14 @@ export default function TiptapImage(props) {
                                 right: '0px',
                                 cursor: 'pointer',
                                 zIndex: 20,
-                                background: 'rgba(0, 0, 0, 0.5)', // Semi-transparent black background
+                                background: 'rgba(0, 0, 0, 0.5)',
                                 borderRadius: '50%',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
                                 width: '24px',
                                 height: '24px',
-                                backdropFilter: 'blur(2px)' // Optional: adds a nice blur effect
+                                backdropFilter: 'blur(2px)',
                             }}
                         >
                             <CloseCircleFill fontSize={20} color="#fff" /> {/* White icon */}
